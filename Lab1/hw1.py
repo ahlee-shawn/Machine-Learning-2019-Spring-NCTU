@@ -65,6 +65,53 @@ def matrix_add(A, B):
 		result.append(temp)
 	return result
 
+def LU_decomposition(A):
+	L_inverse = I_mul_scalar(1, len(A))
+	for i in range(len(A) - 1):
+		L_temp = I_mul_scalar(1, len(A))
+		for j in range(i + 1, len(A)):
+			L_temp[j][i] = (-1) * A[j][i] / A[i][i]
+		A = matrix_mul(L_temp, A)
+		L_inverse = matrix_mul(L_temp, L_inverse)
+	return L_inverse, A
+
+def upper_matrix_inverse(A):
+	result = I_mul_scalar(1, len(A))
+	#change the diagonal of A into 1
+	for i in range(len(A)):
+		temp = A[i][i]
+		result[i][i] /= temp
+		for j in range(i, len(A)):
+			A[i][j] /= temp
+	for i in range(len(A) - 1, 0, -1):
+		temp = I_mul_scalar(1, len(A))
+		for j in range(0, i):
+			temp[j][i] += (-1) * A[j][i] / A[i][i]
+		A = matrix_mul(temp, A)
+		result = matrix_mul(temp, result)
+	return result
+
+def print_LSE(result):
+	print("LSE:")
+	print("Fitting line:", end = "")
+	i = 0
+	for j in range(len(result) - 1, -1, -1):
+		print(" ", end = "")
+		if result[i][0] >= 0:
+			print(result[i][0], end = " ")
+		else:
+			print(-1 * result[i][0], end = " ")
+		i += 1
+		if j != 0:
+			print("X^", end = "")
+			print(j, end = " ")
+			if result[i][0] >= 0:
+				print("+", end = "")
+			else:
+				print("-", end = "")
+	print("")
+
+
 if __name__ == "__main__":
 	filename = sys.argv[1]
 	polynomial_bases = int(sys.argv[2])
@@ -75,4 +122,9 @@ if __name__ == "__main__":
 	A_transpose_mul_A = matrix_mul(A_transpose, A)
 	lambda_I = I_mul_scalar(lse_lambda, len(A_transpose_mul_A))
 	A_transpose_mul_A_add_lambda_I = matrix_add(A_transpose_mul_A, lambda_I)
-	A_transpose_mul_b = matrix_mul(A_transpose, y)
+	L_inverse, U = LU_decomposition(A_transpose_mul_A_add_lambda_I)
+	U_inverse = upper_matrix_inverse(U)
+	A_transpose_mul_A_add_lambda_I_inverse = matrix_mul(U_inverse, L_inverse)
+	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, matrix_mul(A_transpose, y))
+	print_LSE(result)
+	
