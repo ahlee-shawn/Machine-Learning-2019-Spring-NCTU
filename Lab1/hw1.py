@@ -1,5 +1,8 @@
 import sys
 import csv
+import numpy as np  
+import matplotlib.pyplot as plt 
+import math
 
 def read_input(filename):
 	x = []
@@ -91,26 +94,44 @@ def upper_matrix_inverse(A):
 		result = matrix_mul(temp, result)
 	return result
 
-def print_LSE(result):
+def print_LSE(result, A, y):
 	print("LSE:")
 	print("Fitting line:", end = "")
 	i = 0
+	formula = ""
 	for j in range(len(result) - 1, -1, -1):
 		print(" ", end = "")
 		if result[i][0] >= 0:
+			formula += str(result[i][0])
 			print(result[i][0], end = " ")
 		else:
+			formula += str( -1 * result[i][0])
 			print(-1 * result[i][0], end = " ")
 		i += 1
 		if j != 0:
 			print("X^", end = "")
 			print(j, end = " ")
+			formula += ("*x**" + str(j)) 
 			if result[i][0] >= 0:
+				formula += "+"
 				print("+", end = "")
 			else:
+				formula += "-"
 				print("-", end = "")
 	print("")
+	predict = matrix_mul(A, result)
+	error = 0.0
+	for i in range(len(y)):
+		error += (y[i][0] - predict[i][0]) ** 2
+	print("Total error: ", error)
+	return formula
 
+def graph(formula, X, Y):  
+    x = np.array(range(math.floor(min(X)) - 1, math.ceil(max(X)) + 2))  
+    y = eval(formula)
+    plt.scatter(X, Y, c = 'red')
+    plt.plot(x, y)  
+    plt.show()
 
 if __name__ == "__main__":
 	filename = sys.argv[1]
@@ -126,5 +147,5 @@ if __name__ == "__main__":
 	U_inverse = upper_matrix_inverse(U)
 	A_transpose_mul_A_add_lambda_I_inverse = matrix_mul(U_inverse, L_inverse)
 	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, matrix_mul(A_transpose, y))
-	print_LSE(result)
-	
+	formula_lse = print_LSE(result, A, y)
+	graph(formula_lse, x, y)
