@@ -126,12 +126,48 @@ def print_LSE(result, A, y):
 	print("Total error: ", error)
 	return formula
 
+def print_newton(result, A, y):
+	print("\nNewton's Method:")
+	print("Fitting line:", end = "")
+	i = 0
+	formula = ""
+	for j in range(len(result) - 1, -1, -1):
+		print(" ", end = "")
+		if result[i][0] >= 0:
+			formula += str(result[i][0])
+			print(result[i][0], end = " ")
+		else:
+			formula += str( -1 * result[i][0])
+			print(-1 * result[i][0], end = " ")
+		i += 1
+		if j != 0:
+			print("X^", end = "")
+			print(j, end = " ")
+			formula += ("*x**" + str(j)) 
+			if result[i][0] >= 0:
+				formula += "+"
+				print("+", end = "")
+			else:
+				formula += "-"
+				print("-", end = "")
+	print("")
+	predict = matrix_mul(A, result)
+	error = 0.0
+	for i in range(len(y)):
+		error += (y[i][0] - predict[i][0]) ** 2
+	print("Total error: ", error)
+	return formula
+
 def graph(formula, X, Y):  
-    x = np.array(range(math.floor(min(X)) - 1, math.ceil(max(X)) + 2))  
-    y = eval(formula)
-    plt.scatter(X, Y, c = 'red')
-    plt.plot(x, y)  
-    plt.show()
+	plt.scatter(X, Y, c = 'red')
+	x = np.array(range(math.floor(min(X)) - 1, math.ceil(max(X)) + 2))
+	if 'x' in formula:
+		y = np.array(eval(formula))
+		plt.plot(x, y)  
+		plt.show()
+	else:
+		plt.axhline(y = float(formula), color='b', linestyle='-') 
+		plt.show()
 
 if __name__ == "__main__":
 	filename = sys.argv[1]
@@ -141,11 +177,23 @@ if __name__ == "__main__":
 	A = matrix_A(x, polynomial_bases)
 	A_transpose = matrix_transpose(A)
 	A_transpose_mul_A = matrix_mul(A_transpose, A)
+	# LSE
 	lambda_I = I_mul_scalar(lse_lambda, len(A_transpose_mul_A))
 	A_transpose_mul_A_add_lambda_I = matrix_add(A_transpose_mul_A, lambda_I)
 	L_inverse, U = LU_decomposition(A_transpose_mul_A_add_lambda_I)
 	U_inverse = upper_matrix_inverse(U)
 	A_transpose_mul_A_add_lambda_I_inverse = matrix_mul(U_inverse, L_inverse)
-	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, matrix_mul(A_transpose, y))
+	A_transpose_mul_b = matrix_mul(A_transpose, y)
+	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, A_transpose_mul_b)
 	formula_lse = print_LSE(result, A, y)
+
+	# Newton
+	L_inverse, U = LU_decomposition(A_transpose_mul_A)
+	U_inverse = upper_matrix_inverse(U)
+	A_transpose_mul_A_inverse = matrix_mul(U_inverse, L_inverse)
+	result = matrix_mul(A_transpose_mul_A_inverse, A_transpose_mul_b)
+	formula_newton = print_newton(result, A, y)
+
+	# Visualization
 	graph(formula_lse, x, y)
+	graph(formula_newton, x, y)
