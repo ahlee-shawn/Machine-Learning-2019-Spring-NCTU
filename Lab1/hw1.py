@@ -166,6 +166,10 @@ def graph(formula_lse, formula_newton, X, Y):
 		plt.axhline(y = float(formula_newton), color='b', linestyle='-') 
 		plt.show()
 
+def L_mul_y_equal_b(L, b):
+	y_temp = I_mul_scalar(0, len(L))
+	return y_temp
+
 if __name__ == "__main__":
 	filename = sys.argv[1]
 	polynomial_bases = int(sys.argv[2])
@@ -181,6 +185,7 @@ if __name__ == "__main__":
 	print(A_transpose_mul_A_add_lambda_I)
 	print(L)
 	print(U)
+	y_temp = L_mul_y_equal_b(L, I_mul_scalar(1, len(L)))
 	'''
 	#U_inverse = upper_matrix_inverse(U)
 	A_transpose_mul_A_add_lambda_I_inverse = matrix_mul(U_inverse, L_inverse)
