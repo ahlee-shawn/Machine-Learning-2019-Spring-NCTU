@@ -144,26 +144,15 @@ def print_newton(result, A, y):
 	print("Total error: ", error)
 	return formula
 
-def graph(formula_lse, formula_newton, X, Y):  
-	plt.subplot(2,1,1)
-	plt.title("LSE")
+def graph(formula, X, Y):  
 	plt.scatter(X, Y, c = 'red')
 	x = np.array(range(math.floor(min(X)) - 1, math.ceil(max(X)) + 2))
-	if 'x' in formula_lse:
-		y = np.array(eval(formula_lse))
-		plt.plot(x, y)  
-	else:
-		plt.axhline(y = float(formula_lse), color='b', linestyle='-') 
-	plt.subplot(2,1,2)
-	plt.tight_layout()
-	plt.title("Newton's Method")
-	plt.scatter(X, Y, c = 'red')
-	if 'x' in formula_newton:
-		y = np.array(eval(formula_newton))
+	if 'x' in formula:
+		y = np.array(eval(formula))
 		plt.plot(x, y)  
 		plt.show()
 	else:
-		plt.axhline(y = float(formula_newton), color='b', linestyle='-') 
+		plt.axhline(y = float(formula), color='b', linestyle='-') 
 		plt.show()
 
 def L_mul_y_equal_b(L, b):
@@ -201,5 +190,10 @@ if __name__ == "__main__":
 	formula_newton = print_newton(result, A, y)
 
 	# Visualization
+<<<<<<< HEAD
 	graph(formula_lse, formula_newton, x, y)
 	'''
+=======
+	graph(formula_lse, x, y)
+	graph(formula_newton, x, y)
+>>>>>>> parent of 8dbba66... merge tow plots into onr figure with two subplots
