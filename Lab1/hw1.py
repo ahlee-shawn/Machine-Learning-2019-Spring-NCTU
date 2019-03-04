@@ -69,16 +69,30 @@ def matrix_add(A, B):
 	return result
 
 def LU_decomposition(A):
-	L = I_mul_scalar(1, len(A))
+	L_inverse = I_mul_scalar(1, len(A))
 	for i in range(len(A) - 1):
-		L_inverse_temp = I_mul_scalar(1, len(A))
 		L_temp = I_mul_scalar(1, len(A))
 		for j in range(i + 1, len(A)):
-			L_inverse_temp[j][i] = (-1) * A[j][i] / A[i][i]
-			L_temp[j][i] = A[j][i] / A[i][i]
-		A = matrix_mul(L_inverse_temp, A)
-		L = matrix_mul(L_temp, L)
-	return L, A
+			L_temp[j][i] = (-1) * A[j][i] / A[i][i]
+		A = matrix_mul(L_temp, A)
+		L_inverse = matrix_mul(L_temp, L_inverse)
+	return L_inverse, A
+
+def upper_matrix_inverse(A):
+	result = I_mul_scalar(1, len(A))
+	#change the diagonal of A into 1
+	for i in range(len(A)):
+		temp = A[i][i]
+		result[i][i] /= temp
+		for j in range(i, len(A)):
+			A[i][j] /= temp
+	for i in range(len(A) - 1, 0, -1):
+		temp = I_mul_scalar(1, len(A))
+		for j in range(0, i):
+			temp[j][i] += (-1) * A[j][i] / A[i][i]
+		A = matrix_mul(temp, A)
+		result = matrix_mul(temp, result)
+	return result
 
 def print_LSE(result, A, y):
 	print("LSE:")
@@ -144,20 +158,27 @@ def print_newton(result, A, y):
 	print("Total error: ", error)
 	return formula
 
-def graph(formula, X, Y):  
+def graph(formula_lse, formula_newton, X, Y):  
+	plt.subplot(2,1,1)
+	plt.title("LSE")
 	plt.scatter(X, Y, c = 'red')
 	x = np.array(range(math.floor(min(X)) - 1, math.ceil(max(X)) + 2))
-	if 'x' in formula:
-		y = np.array(eval(formula))
+	if 'x' in formula_lse:
+		y = np.array(eval(formula_lse))
+		plt.plot(x, y)  
+	else:
+		plt.axhline(y = float(formula_lse), color='b', linestyle='-') 
+	plt.subplot(2,1,2)
+	plt.tight_layout()
+	plt.title("Newton's Method")
+	plt.scatter(X, Y, c = 'red')
+	if 'x' in formula_newton:
+		y = np.array(eval(formula_newton))
 		plt.plot(x, y)  
 		plt.show()
 	else:
-		plt.axhline(y = float(formula), color='b', linestyle='-') 
+		plt.axhline(y = float(formula_newton), color='b', linestyle='-') 
 		plt.show()
-
-def L_mul_y_equal_b(L, b):
-	y_temp = I_mul_scalar(0, len(L))
-	return y_temp
 
 if __name__ == "__main__":
 	filename = sys.argv[1]
@@ -170,13 +191,8 @@ if __name__ == "__main__":
 	# LSE
 	lambda_I = I_mul_scalar(lse_lambda, len(A_transpose_mul_A))
 	A_transpose_mul_A_add_lambda_I = matrix_add(A_transpose_mul_A, lambda_I)
-	L, U = LU_decomposition(A_transpose_mul_A_add_lambda_I)
-	print(A_transpose_mul_A_add_lambda_I)
-	print(L)
-	print(U)
-	y_temp = L_mul_y_equal_b(L, I_mul_scalar(1, len(L)))
-	'''
-	#U_inverse = upper_matrix_inverse(U)
+	L_inverse, U = LU_decomposition(A_transpose_mul_A_add_lambda_I)
+	U_inverse = upper_matrix_inverse(U)
 	A_transpose_mul_A_add_lambda_I_inverse = matrix_mul(U_inverse, L_inverse)
 	A_transpose_mul_b = matrix_mul(A_transpose, y)
 	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, A_transpose_mul_b)
@@ -190,10 +206,4 @@ if __name__ == "__main__":
 	formula_newton = print_newton(result, A, y)
 
 	# Visualization
-<<<<<<< HEAD
 	graph(formula_lse, formula_newton, x, y)
-	'''
-=======
-	graph(formula_lse, x, y)
-	graph(formula_newton, x, y)
->>>>>>> parent of 8dbba66... merge tow plots into onr figure with two subplots
