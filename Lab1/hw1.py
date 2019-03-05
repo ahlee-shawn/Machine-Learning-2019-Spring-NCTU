@@ -88,40 +88,8 @@ def upper_matrix_inverse(U, L_inverse):
 			result[i][j] = (L_inverse[i][j] - temp) / U[i][i]
 	return result
 
-def print_LSE(result, A, y):
-	print("LSE:")
-	print("Fitting line:", end = "")
-	i = 0
-	formula = ""
-	for j in range(len(result) - 1, -1, -1):
-		print(" ", end = "")
-		if result[i][0] >= 0:
-			formula += str(result[i][0])
-			print(result[i][0], end = " ")
-		else:
-			formula += str( -1 * result[i][0])
-			print(-1 * result[i][0], end = " ")
-		i += 1
-		if j != 0:
-			print("X^", end = "")
-			print(j, end = " ")
-			formula += ("*x**" + str(j)) 
-			if result[i][0] >= 0:
-				formula += "+"
-				print("+", end = "")
-			else:
-				formula += "-"
-				print("-", end = "")
-	print("")
-	predict = matrix_mul(A, result)
-	error = 0.0
-	for i in range(len(y)):
-		error += (y[i][0] - predict[i][0]) ** 2
-	print("Total error: ", error)
-	return formula
-
-def print_newton(result, A, y):
-	print("\nNewton's Method:")
+def print_error(method, result, A, y):
+	print(method)
 	print("Fitting line:", end = "")
 	i = 0
 	formula = ""
@@ -186,12 +154,10 @@ if __name__ == "__main__":
 	lambda_I = I_mul_scalar(lse_lambda, len(A_transpose_mul_A))
 	A_transpose_mul_A_add_lambda_I = matrix_add(A_transpose_mul_A, lambda_I)
 	L_inverse, U = LU_decomposition(A_transpose_mul_A_add_lambda_I)
-
 	A_transpose_mul_A_add_lambda_I_inverse = upper_matrix_inverse(U, L_inverse)
-	
 	A_transpose_mul_b = matrix_mul(A_transpose, y)
 	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, A_transpose_mul_b)
-	formula_lse = print_LSE(result, A, y)
+	formula_lse = print_error("LSE:", result, A, y)
 	
 	# Newton
 	L_inverse, U = LU_decomposition(A_transpose_mul_A)
@@ -199,7 +165,7 @@ if __name__ == "__main__":
 
 
 	result = matrix_mul(A_transpose_mul_A_inverse, A_transpose_mul_b)
-	formula_newton = print_newton(result, A, y)
+	formula_newton = print_error("\nNewton's Method", result, A, y)
 
 	# Visualization
 	graph(formula_lse, formula_newton, x, y)
