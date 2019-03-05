@@ -78,20 +78,14 @@ def LU_decomposition(A):
 		L_inverse = matrix_mul(L_temp, L_inverse)
 	return L_inverse, A
 
-def upper_matrix_inverse(A):
-	result = I_mul_scalar(1, len(A))
-	#change the diagonal of A into 1
-	for i in range(len(A)):
-		temp = A[i][i]
-		result[i][i] /= temp
-		for j in range(i, len(A)):
-			A[i][j] /= temp
-	for i in range(len(A) - 1, 0, -1):
-		temp = I_mul_scalar(1, len(A))
-		for j in range(0, i):
-			temp[j][i] += (-1) * A[j][i] / A[i][i]
-		A = matrix_mul(temp, A)
-		result = matrix_mul(temp, result)
+def upper_matrix_inverse(U, L_inverse):
+	result = I_mul_scalar(0, len(U))
+	for i in range(len(U)-1, -1, -1):
+		for j in range(len(result[0])):
+			temp = 0
+			for k in range(len(result)):
+				temp += U[i][k] * result[k][j]
+			result[i][j] = (L_inverse[i][j] - temp) / U[i][i]
 	return result
 
 def print_LSE(result, A, y):
@@ -192,18 +186,21 @@ if __name__ == "__main__":
 	lambda_I = I_mul_scalar(lse_lambda, len(A_transpose_mul_A))
 	A_transpose_mul_A_add_lambda_I = matrix_add(A_transpose_mul_A, lambda_I)
 	L_inverse, U = LU_decomposition(A_transpose_mul_A_add_lambda_I)
-	U_inverse = upper_matrix_inverse(U)
-	A_transpose_mul_A_add_lambda_I_inverse = matrix_mul(U_inverse, L_inverse)
+
+	A_transpose_mul_A_add_lambda_I_inverse = upper_matrix_inverse(U, L_inverse)
+	
 	A_transpose_mul_b = matrix_mul(A_transpose, y)
 	result = matrix_mul(A_transpose_mul_A_add_lambda_I_inverse, A_transpose_mul_b)
 	formula_lse = print_LSE(result, A, y)
-
+	
 	# Newton
 	L_inverse, U = LU_decomposition(A_transpose_mul_A)
-	U_inverse = upper_matrix_inverse(U)
-	A_transpose_mul_A_inverse = matrix_mul(U_inverse, L_inverse)
+	A_transpose_mul_A_inverse = upper_matrix_inverse(U, L_inverse)
+
+
 	result = matrix_mul(A_transpose_mul_A_inverse, A_transpose_mul_b)
 	formula_newton = print_newton(result, A, y)
 
 	# Visualization
 	graph(formula_lse, formula_newton, x, y)
+	
