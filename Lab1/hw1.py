@@ -68,6 +68,24 @@ def matrix_add(A, B):
 		result.append(temp)
 	return result
 
+def matrix_minus(A, B):
+	result = []
+	for i in range(len(A)):
+		temp = []
+		for j in range(len(A[0])):
+			temp.append(A[i][j] - B[i][j])
+		result.append(temp)
+	return result
+
+def matrix_mul_scalar(A, scalar):
+	result = []
+	for i in range(len(A)):
+		temp = []
+		for j in range(len(A[0])):
+			temp.append(A[i][j] * scalar)
+		result.append(temp)
+	return result
+
 def LU_decomposition(A):
 	L_inverse = I_mul_scalar(1, len(A))
 	for i in range(len(A) - 1):
@@ -88,6 +106,13 @@ def upper_matrix_inverse(U, L_inverse):
 			result[i][j] = (L_inverse[i][j] - temp) / U[i][i]
 	return result
 
+def difference(A):
+	temp = 0
+	for i in range(len(A)):
+		for j in range(len(A[0])):
+			temp += (A[i][j])**2
+	return math.sqrt(temp)
+
 def print_error(method, result, A, y):
 	print(method)
 	print("Fitting line:", end = "")
@@ -100,7 +125,10 @@ def print_error(method, result, A, y):
 			print(result[i][0], end = " ")
 		else:
 			formula += str( -1 * result[i][0])
-			print(-1 * result[i][0], end = " ")
+			if i != 0:
+				print(-1 * result[i][0], end = " ")
+			else:
+				print(result[i][0], end = " ")
 		i += 1
 		if j != 0:
 			print("X^", end = "")
@@ -160,13 +188,19 @@ if __name__ == "__main__":
 	formula_lse = print_error("LSE:", result, A, y)
 	
 	# Newton
-	L_inverse, U = LU_decomposition(A_transpose_mul_A)
-	A_transpose_mul_A_inverse = upper_matrix_inverse(U, L_inverse)
-
-
-	result = matrix_mul(A_transpose_mul_A_inverse, A_transpose_mul_b)
+	result = []
+	for i in range(polynomial_bases):
+		result.append([100]) 
+	L_inverse, U = LU_decomposition(matrix_mul_scalar(A_transpose_mul_A, 2))
+	hessian_matrix_inverse = upper_matrix_inverse(U, L_inverse)
+	two_mul_A_transpose_mul_b = matrix_mul_scalar(matrix_mul(A_transpose, y), 2)
+	while(1):
+		temp = result
+		gradient = matrix_minus(matrix_mul_scalar(matrix_mul(A_transpose_mul_A, result), 2), two_mul_A_transpose_mul_b)
+		result = matrix_minus(result, matrix_mul(hessian_matrix_inverse, gradient))
+		if difference(matrix_minus(result, temp)) < polynomial_bases:
+			break
 	formula_newton = print_error("\nNewton's Method", result, A, y)
-
 	# Visualization
 	graph(formula_lse, formula_newton, x, y)
 	
