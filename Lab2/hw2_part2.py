@@ -1,6 +1,5 @@
 import sys
 import math
-import time
 
 def factorial(x):
 	if x > 2:
