@@ -9,7 +9,7 @@ def polynomial_basis_linear_model_data_generator(n, standard_deviation, w):
 	x = float(np.random.uniform(-1.0, 1.0, 1))
 	y = 0.0
 	for i in range(n):
-		y += w[0][i] * (x ** i)
+		y += w[i] * (x ** i)
 	e = float(univariate_gaussian_data_generator(0, standard_deviation))
 	y += e
 	return y
@@ -30,8 +30,8 @@ if __name__ == "__main__":
 	print("a: ", end = "")
 	variance = float(input())
 	standard_deviation = math.sqrt(variance)
-	w = [[]]
+	w = []
 	print("w: ", end = "")
 	for i in range(n):
-		w[0].append(float(input()))
+		w.append(float(input()))
 	print(polynomial_basis_linear_model_data_generator(n, standard_deviation, w))
