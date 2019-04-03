@@ -8,9 +8,13 @@ def univariate_gaussian_data_generator(mean, standard_deviation):
 if __name__ == "__main__":
 
 	# univariate gaussian data generator
-	print("Mean: ", end="")
+	print("Mean: ", end = " ")
 	mean = float(input())
 	print("Variance: ", end = "")
 	variance = float(input())
 	standard_deviation = math.sqrt(variance)
-	print(univariate_gaussian_data_generator(mean, standard_deviation))
+
+	print("Data point source function: N({}, {})", mean, variance)
+
+	while(True):
+		new_data = float(univariate_gaussian_data_generator(mean, standard_deviation))
