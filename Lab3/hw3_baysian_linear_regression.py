@@ -111,6 +111,94 @@ def difference(list1, list2):
 		temp += ((list1[i][0] - list2[i][0]) ** 2)
 	return math.sqrt(temp)
 
+def draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_incomes_m, ten_a, ten_S_inverse, fifty_data_x, fifty_data_y, fifty_incomes_m, fifty_a, fifty_S_inverse):
+	plt.subplot(221)
+	plt.xlim(-2.0, 2.0)
+	plt.title("Ground Truth")
+	ground_func = np.poly1d(np.flip(w))
+	ground_x = np.linspace(-2.0, 2.0, 30)
+	ground_y = ground_func(ground_x)
+	plt.plot(ground_x, ground_y, color = 'black')
+	w[0] += variance_error
+	ground_func = np.poly1d(np.flip(w))
+	ground_y = ground_func(ground_x)
+	plt.plot(ground_x, ground_y, color = 'red')
+	w[0] -= 2 * variance_error
+	ground_func = np.poly1d(np.flip(w))
+	ground_y = ground_func(ground_x)
+	plt.plot(ground_x, ground_y, color = 'red')
+
+	plt.subplot(222)
+	plt.xlim(-2.0, 2.0)
+	plt.title("Predict Result")
+	plt.scatter(data_x, data_y)
+	predict_func = np.poly1d(np.flip(np.reshape(m, n)))
+	predict_x = np.linspace(-2.0, 2.0, 30)
+	predict_y = predict_func(predict_x)
+	plt.plot(predict_x, predict_y, color = 'black')
+	predict_y_add_variance = []
+	for i in range(0, 30):
+		A = matrix_A(predict_x[i], n)
+		A_transpose = matrix_transpose(A)
+		predict_y_add_variance.append(predict_y[i] + ((1.0/a) + (matrix_mul(A, matrix_mul(S_inverse, A_transpose))[0][0])))
+	plt.plot(predict_x, predict_y_add_variance, color = 'red')
+
+	predict_y_minus_variance = []
+	for i in range(0, 30):
+		A = matrix_A(predict_x[i], n)
+		A_transpose = matrix_transpose(A)
+		predict_y_minus_variance.append(predict_y[i] - ((1.0/a) + (matrix_mul(A, matrix_mul(S_inverse, A_transpose))[0][0])))
+	plt.plot(predict_x, predict_y_minus_variance, color = 'red')
+
+	plt.subplot(223)
+	plt.xlim(-2.0, 2.0)
+	plt.title("After 10 incomes")
+	plt.scatter(ten_data_x, ten_data_y)
+	ten_func = np.poly1d(np.flip(np.reshape(ten_incomes_m, n)))
+	ten_data_x = np.linspace(-2.0, 2.0, 30)
+	ten_data_y = ten_func(ten_data_x)
+	plt.plot(ten_data_x, ten_data_y, color = 'black')
+	ten_y_add_variance = []
+	for i in range(0, 30):
+		A = matrix_A(ten_data_x[i], n)
+		A_transpose = matrix_transpose(A)
+		ten_y_add_variance.append(ten_data_y[i] + ((1.0/ten_a) + (matrix_mul(A, matrix_mul(ten_S_inverse, A_transpose))[0][0])))
+	plt.plot(ten_data_x, ten_y_add_variance, color = 'red')
+
+	ten_y_minus_variance = []
+	for i in range(0, 30):
+		A = matrix_A(ten_data_x[i], n)
+		A_transpose = matrix_transpose(A)
+		ten_y_minus_variance.append(ten_data_y[i] - ((1.0/ten_a) + (matrix_mul(A, matrix_mul(ten_S_inverse, A_transpose))[0][0])))
+	plt.plot(ten_data_x, ten_y_minus_variance, color = 'red')
+
+
+	plt.subplot(224)
+	plt.xlim(-2.0, 2.0)
+	plt.title("After 50 incomes")
+	plt.scatter(fifty_data_x, fifty_data_y)
+	fifty_func = np.poly1d(np.flip(np.reshape(fifty_incomes_m, n)))
+	fifty_data_x = np.linspace(-2.0, 2.0, 30)
+	fifty_data_y = fifty_func(fifty_data_x)
+	plt.plot(fifty_data_x, fifty_data_y, color = 'black')
+	fifty_y_add_variance = []
+	for i in range(0, 30):
+		A = matrix_A(fifty_data_x[i], n)
+		A_transpose = matrix_transpose(A)
+		fifty_y_add_variance.append(fifty_data_y[i] + ((1.0/fifty_a) + (matrix_mul(A, matrix_mul(fifty_S_inverse, A_transpose))[0][0])))
+	plt.plot(fifty_data_x, fifty_y_add_variance, color = 'red')
+
+	fifty_y_minus_variance = []
+	for i in range(0, 30):
+		A = matrix_A(fifty_data_x[i], n)
+		A_transpose = matrix_transpose(A)
+		fifty_y_minus_variance.append(fifty_data_y[i] - ((1.0/fifty_a) + (matrix_mul(A, matrix_mul(fifty_S_inverse, A_transpose))[0][0])))
+	plt.plot(fifty_data_x, fifty_y_minus_variance, color = 'red')
+
+	plt.tight_layout()
+	plt.show()
+
+
 if __name__ == "__main__":
 
 	b, n, variance_error, standard_deviation_error, w = get_input()
@@ -124,7 +212,6 @@ if __name__ == "__main__":
 	data_mean = 0.0
 	data_variance = 0.0
 	prev_data_mean = 0.0
-	prev_probability = 0.0
 	data_x = []
 	data_y = []
 	k = 0
@@ -144,9 +231,7 @@ if __name__ == "__main__":
 			a = 0.0001
 		else:
 			a = data_variance
-		prev_data_mean = data_mean
 
-		print("Add data point (", new_data_x, ", ", new_data_y[0][0], ")")
 		A = matrix_A(new_data_x, n)
 		A_transpose = matrix_transpose(A)
 		A_transpose_mul_A = matrix_mul(A_transpose, A)
@@ -158,7 +243,10 @@ if __name__ == "__main__":
 		a_mul_A_tranpose_mul_b = matrix_mul_scalar(matrix_mul(A_transpose, new_data_y), a)
 		m = matrix_mul(S_inverse, matrix_add(a_mul_A_tranpose_mul_b, matrix_mul(S, m)))
 
+		predictive_distribution_mean = matrix_mul(A, m)[0][0]
+		predictive_distribution_variance = (1.0 / a) + (matrix_mul(A, matrix_mul(S_inverse, A_transpose))[0][0])
 		
+		print("Add data point (", new_data_x, ", ", new_data_y[0][0], ")")
 		print("Posterior mean: ")
 		for i in range(0, len(m)):
 			print(m[i][0])
@@ -170,24 +258,25 @@ if __name__ == "__main__":
 					print(S_inverse[i][j], end = ", ")
 				else:
 					print(S_inverse[i][j])
-		
-
 		print("")
-		predictive_distribution_mean = matrix_mul(A, m)[0][0]
-		predictive_distribution_variance = (1.0 / a) + (matrix_mul(A, matrix_mul(S_inverse, A_transpose))[0][0])
 		print("Predictive Distribution ~ N ({0}, {1})".format(predictive_distribution_mean, predictive_distribution_variance))
-		print(k)
-		print(difference(prev_m, m))
-		if difference(prev_m, m) < 0.01 and k > 1000:
+
+		if difference(prev_m, m) < 0.01 and k > 500:
 			break
 		prev_m = m
+		prev_data_mean = data_mean
 		k += 1
+		if k == 10:
+			ten_incomes_m = m.copy()
+			ten_data_x = data_x.copy()
+			ten_data_y = data_y.copy()
+			ten_a = a
+			ten_S_inverse = S_inverse.copy()
+		if k == 50:
+			fifty_incomes_m = m.copy()
+			fifty_data_x = data_x.copy()
+			fifty_data_y = data_y.copy()
+			fifty_a = a
+			fifty_S_inverse = S_inverse.copy()
 
-func = np.poly1d(np.flip(np.reshape(m, n)))
-x = np.linspace(-2.0, 2.0, 30)
-y = func(x)
-plt.title("Predict Result")
-plt.plot(x, y, color = 'black')
-plt.scatter(data_x, data_y)
-plt.xlim(-2.0, 2.0)
-plt.show()
+draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_incomes_m, ten_a, ten_S_inverse, fifty_data_x, fifty_data_y, fifty_incomes_m, fifty_a, fifty_S_inverse)
