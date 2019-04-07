@@ -118,18 +118,21 @@ def draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_in
 	ground_func = np.poly1d(np.flip(w))
 	ground_x = np.linspace(-2.0, 2.0, 30)
 	ground_y = ground_func(ground_x)
+	print(type(ground_y))
 	plt.plot(ground_x, ground_y, color = 'black')
 	w[0] += variance_error
 	ground_func = np.poly1d(np.flip(w))
-	ground_y = ground_func(ground_x)
-	plt.plot(ground_x, ground_y, color = 'red')
+	ground_y_1 = ground_func(ground_x)
+	plt.plot(ground_x, ground_y_1, color = 'red')
 	w[0] -= 2 * variance_error
 	ground_func = np.poly1d(np.flip(w))
-	ground_y = ground_func(ground_x)
-	plt.plot(ground_x, ground_y, color = 'red')
+	ground_y_2 = ground_func(ground_x)
+	plt.plot(ground_x, ground_y_2, color = 'red')
+	plt.ylim(min(ground_y_2) - 1.0, max(ground_y_1) + 1.0)
 
 	plt.subplot(222)
 	plt.xlim(-2.0, 2.0)
+	plt.ylim(min(ground_y_2) - 1.0, max(ground_y_1) + 1.0)
 	plt.title("Predict Result")
 	plt.scatter(data_x, data_y)
 	predict_func = np.poly1d(np.flip(np.reshape(m, n)))
@@ -152,6 +155,7 @@ def draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_in
 
 	plt.subplot(223)
 	plt.xlim(-2.0, 2.0)
+	plt.ylim(min(ground_y_2) - 1.0, max(ground_y_1) + 1.0)
 	plt.title("After 10 incomes")
 	plt.scatter(ten_data_x, ten_data_y)
 	ten_func = np.poly1d(np.flip(np.reshape(ten_incomes_m, n)))
@@ -175,6 +179,7 @@ def draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_in
 
 	plt.subplot(224)
 	plt.xlim(-2.0, 2.0)
+	plt.ylim(min(ground_y_2) - 1.0, max(ground_y_1) + 1.0)
 	plt.title("After 50 incomes")
 	plt.scatter(fifty_data_x, fifty_data_y)
 	fifty_func = np.poly1d(np.flip(np.reshape(fifty_incomes_m, n)))
@@ -203,7 +208,6 @@ if __name__ == "__main__":
 
 	b, n, variance_error, standard_deviation_error, w = get_input()
 
-	S_inverse = I_mul_scalar(b, n)
 	m = []
 	prev_m = []
 	for i in range(0, n):
@@ -218,30 +222,37 @@ if __name__ == "__main__":
 
 	while(True):
 		print("--------------------------------------------------------------")
-		L_inverse, U = LU_decomposition(S_inverse)
-		S = upper_matrix_inverse(U, L_inverse)
+		k += 1
 		new_data_y = [[0.0]]
 		new_data_x, new_data_y[0][0] = polynomial_basis_linear_model_data_generator(n, standard_deviation_error, w)
 		data_x.append(new_data_x)
 		data_y.append(new_data_y[0][0])
-
-		data_mean = (data_mean * (n - 1) + new_data_y[0][0]) / n
-		data_variance = data_variance + (prev_data_mean ** 2) - (data_mean ** 2) + (((new_data_y[0][0] ** 2) - data_variance - (prev_data_mean ** 2))/n)
+		
+		data_mean = (data_mean * (k - 1) + new_data_y[0][0]) / k
+		data_variance = data_variance + (prev_data_mean ** 2) - (data_mean ** 2) + (((new_data_y[0][0] ** 2) - data_variance - (prev_data_mean ** 2)) / (k + 1))
 		if data_variance == 0:
 			a = 0.0001
 		else:
 			a = data_variance
-
+		
 		A = matrix_A(new_data_x, n)
 		A_transpose = matrix_transpose(A)
 		A_transpose_mul_A = matrix_mul(A_transpose, A)
+		if k == 1:
+			sigma_inverse = matrix_add(matrix_mul_scalar(A_transpose_mul_A, a), I_mul_scalar(b, n))
+			L_inverse, U = LU_decomposition(sigma_inverse)
+			S_inverse = upper_matrix_inverse(U, L_inverse)
+			m = matrix_mul_scalar(matrix_mul(S_inverse, matrix_mul(A_transpose, new_data_y)), a)
+		else:
+			L_inverse, U = LU_decomposition(S_inverse)
+			S = upper_matrix_inverse(U, L_inverse)
 
-		sigma_inverse = matrix_add(matrix_mul_scalar(A_transpose_mul_A, a), S)
-		L_inverse, U = LU_decomposition(sigma_inverse)
-		S_inverse = upper_matrix_inverse(U, L_inverse)
+			sigma_inverse = matrix_add(matrix_mul_scalar(A_transpose_mul_A, a), S)
+			L_inverse, U = LU_decomposition(sigma_inverse)
+			S_inverse = upper_matrix_inverse(U, L_inverse)
 
-		a_mul_A_tranpose_mul_b = matrix_mul_scalar(matrix_mul(A_transpose, new_data_y), a)
-		m = matrix_mul(S_inverse, matrix_add(a_mul_A_tranpose_mul_b, matrix_mul(S, m)))
+			a_mul_A_tranpose_mul_b = matrix_mul_scalar(matrix_mul(A_transpose, new_data_y), a)
+			m = matrix_mul(S_inverse, matrix_add(a_mul_A_tranpose_mul_b, matrix_mul(S, m)))
 
 		predictive_distribution_mean = matrix_mul(A, m)[0][0]
 		predictive_distribution_variance = (1.0 / a) + (matrix_mul(A, matrix_mul(S_inverse, A_transpose))[0][0])
@@ -261,11 +272,10 @@ if __name__ == "__main__":
 		print("")
 		print("Predictive Distribution ~ N ({0}, {1})".format(predictive_distribution_mean, predictive_distribution_variance))
 
-		if difference(prev_m, m) < 0.01 and k > 500:
+		if difference(prev_m, m) < 0.01 and k > 1000:
 			break
 		prev_m = m
 		prev_data_mean = data_mean
-		k += 1
 		if k == 10:
 			ten_incomes_m = m.copy()
 			ten_data_x = data_x.copy()
@@ -278,5 +288,6 @@ if __name__ == "__main__":
 			fifty_data_y = data_y.copy()
 			fifty_a = a
 			fifty_S_inverse = S_inverse.copy()
-
+print(m)
 draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_incomes_m, ten_a, ten_S_inverse, fifty_data_x, fifty_data_y, fifty_incomes_m, fifty_a, fifty_S_inverse)
+print(m)
