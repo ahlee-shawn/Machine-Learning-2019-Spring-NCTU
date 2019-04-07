@@ -288,6 +288,5 @@ if __name__ == "__main__":
 			fifty_data_y = data_y.copy()
 			fifty_a = a
 			fifty_S_inverse = S_inverse.copy()
-print(m)
+
 draw(w, variance_error, data_x, data_y, m, n, ten_data_x, ten_data_y, ten_incomes_m, ten_a, ten_S_inverse, fifty_data_x, fifty_data_y, fifty_incomes_m, fifty_a, fifty_S_inverse)
-print(m)
