@@ -2,16 +2,22 @@ import numpy as np
 import math
 import time
 
-def univariate_gaussian_data_generator(mean, standard_deviation):
-	temp = np.sum(np.random.uniform(0.0, 1.0, 12)) - 6
-	return mean + standard_deviation * temp
-
-if __name__ == "__main__":
+def get_input():
 	print("Mean: ", end = " ")
 	mean = float(input())
 	print("Variance: ", end = "")
 	variance = float(input())
 	standard_deviation = math.sqrt(variance)
+	return mean, variance, standard_deviation
+
+
+def univariate_gaussian_data_generator(mean, standard_deviation):
+	temp = np.sum(np.random.uniform(0.0, 1.0, 12)) - 6
+	return mean + standard_deviation * temp
+
+if __name__ == "__main__":
+
+	mean, variance, standard_deviation = get_input()
 
 	print("Data point source function: N(", mean, ",", variance, ")\n")
 
