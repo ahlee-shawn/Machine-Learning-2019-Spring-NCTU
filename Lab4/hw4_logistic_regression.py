@@ -154,11 +154,11 @@ def determinant(A):
 def condition_check(A):
 	for i in range (0, len(A)):
 		if math.isnan(A[0][0]):
-			A[0][0] = 2.0
+			A[0][0] = np.random.random_sample() * 100
 		if math.isnan(A[1][0]):
-			A[1][0] = 5.0
+			A[1][0] = np.random.random_sample() * 100
 		if math.isnan(A[2][0]):
-			A[2][0] = -5.0
+			A[2][0] = np.random.random_sample() * 100
 
 def draw(X, c1x, c1y, c2x, c2y, gradient_w, y, newton_w):
 	plt.subplot(131)
