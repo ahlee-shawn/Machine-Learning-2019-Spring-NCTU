@@ -1,13 +1,8 @@
 from libsvm.svmutil import *
 import numpy as np
 import csv
-import numba as nb
 
 def read_csv():
-	x_train = []
-	y_train = []
-	x_test = []
-	y_test = []
 	with open('X_train.csv') as csv_file:
 		csv_reader = csv.reader(csv_file, delimiter=',')
 		x_train = list(csv_reader)
@@ -17,19 +12,9 @@ def read_csv():
 		y_train_2d = list(csv_reader)
 		y_train = [y for x in y_train_2d for y in x]
 		y_train = [ int(x) for x in y_train ]
-	with open('X_test.csv') as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		x_test = list(csv_reader)
-		x_test = [[float(y) for y in x] for x in x_test]
-	with open('Y_test.csv') as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		y_test_2d = list(csv_reader)
-		y_test = [y for x in y_test_2d for y in x]
-		y_test = [ int(x) for x in y_test ]
-	return x_train, y_train, x_test, y_test
+	return np.array(x_train), np.array(y_train)
 
-@nb.jit
-def grid_search(x_train, y_train, x_test, y_test):
+def grid_search(x_train, y_train):
 	cost = ["1", "2", "3"]
 	gamma = ["0.25", "0.5"]
 	degree = ["2", "3", "4"]
@@ -64,5 +49,5 @@ def grid_search(x_train, y_train, x_test, y_test):
 	print("Corresponding Parameter: {}".format(best_parameter))
 
 if __name__ == "__main__":
-	x_train, y_train, x_test, y_test = read_csv()
-	grid_search(x_train, y_train, x_test, y_test)
+	x_train, y_train = read_csv()
+	grid_search(x_train, y_train)
