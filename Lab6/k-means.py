@@ -43,7 +43,7 @@ def update(data, means, classification):
 		count[classification[i]] += 1
 	return np.true_divide(means, count)
 
-def draw(data, means, classification, iteration, error):
+def draw(data, means, classification, iteration):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, means.shape[0] * 2)))
 	title = "K-Means Iteration-" + str(iteration)
 	plt.title(title)
@@ -64,14 +64,14 @@ def k_means(data):
 	means, previous_classification, iteration = initialization(k) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	draw(data, means, classification, iteration, error)
+	draw(data, means, classification, iteration)
 	while(error):
 		iteration += 1
 		means = update(data, means, classification)
 		previous_classification = classification
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
-		draw(data, means, classification, iteration, error)
+		draw(data, means, classification, iteration)
 		print(error)
 
 if __name__ == "__main__":
