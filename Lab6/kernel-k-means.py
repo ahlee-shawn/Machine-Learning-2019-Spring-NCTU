@@ -1,0 +1,150 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+
+from scipy.spatial.distance import cdist, pdist, squareform
+
+from matplotlib.axes._axes import _log as matplotlib_axes_logger
+matplotlib_axes_logger.setLevel('ERROR')
+
+def read_input():
+	with open('moon.txt') as csv_file:
+		csv_reader = csv.reader(csv_file, delimiter=',')
+		data1 = list(csv_reader)
+		data1 = [[float(y) for y in x] for x in data1]
+	with open('circle.txt') as csv_file:
+		csv_reader = csv.reader(csv_file, delimiter=',')
+		data2 = list(csv_reader)
+		data2 = [[float(y) for y in x] for x in data2]
+	#return np.append(np.array(data1), np.array(data2)).reshape(3000, 2)
+	return np.array(data2).reshape(1500, 2)
+
+def compute_rbf_kernel(raw_data):
+	negative_gamma = -1 / 2
+	temp = squareform(np.exp(negative_gamma * pdist(raw_data, 'sqeuclidean')))
+	'''
+	kernel_data = np.zeros([raw_data.shape[0], raw_data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
+	for i in range(0, raw_data.shape[0]):
+		for j in range(i + 1, raw_data.shape[0]):
+			temp = np.exp(negative_gamma * np.linalg.norm(raw_data[i] - raw_data[j]))
+			kernel_data[i][j] = temp
+			kernel_data[j][i] = temp
+	print(kernel_data - temp)
+	'''
+	return temp
+
+def initialization(k):
+	means = np.random.rand(k, 2)
+	previous_classification = []
+	for i in range(1500):
+		if i % 2 == 0:
+			previous_classification.append(0)
+		else:
+			previous_classification.append(1)
+	#previous_classification = np.zeros([1500], dtype=np.int)
+	#previous_classification = np.random.randint(2, size=3000)
+	print(np.asarray(previous_classification))
+	return means, np.asarray(previous_classification), 1 # 1 for iteration
+
+def second_term_of_calculate_distance(data, kernel_data, classification, data_number, cluster_number, k):
+	result = 0
+	number_in_cluser = 0
+	for i in range(0, data.shape[0]):
+		if classification[i] == cluster_number:
+			number_in_cluser += 1
+	if number_in_cluser == 0:
+		number_in_cluser = 1
+	for i in range(0, data.shape[0]):
+		if classification[i] == cluster_number:
+			result += kernel_data[data_number][i]
+	return -2 * (result / number_in_cluser)
+
+def third_term_of_calculate_distance(kernel_data, classification, k):
+	temp = np.zeros(k, dtype=np.float32)
+	temp1 = np.zeros(k, dtype=np.float32)
+	for i in range(0, classification.shape[0]):
+		temp[classification[i]] += 1
+	for i in range(0, k):
+		for p in range(0, kernel_data.shape[0]):
+			for q in range(p + 1, kernel_data.shape[1]):
+				if classification[p] == i and classification[q] == i:
+					temp1[i] += kernel_data[p][q]
+	for i in range(0, k):
+		if temp[i] == 0:
+			temp[i] = 1
+		temp1[i] /= (temp[i] ** 2)
+	return temp1
+
+def classify(data, kernel_data, means, classification):
+	temp_classification = np.zeros([data.shape[0]], dtype=np.int)
+	third_term = third_term_of_calculate_distance(kernel_data, classification, means.shape[0])
+	print(third_term)
+	for i in range(0, data.shape[0]):
+		temp = np.zeros([means.shape[0]], dtype=np.float32) # temp size: k
+		for j in range(0, means.shape[0]):
+			temp[j] = second_term_of_calculate_distance(data, kernel_data, classification, i, j, means.shape[0]) + third_term[j]
+		#print(temp)
+		temp_classification[i] = np.argmin(temp)
+		#print(temp_classification[i])
+	print(temp_classification)
+	return temp_classification
+
+def calculate_error(classification, previous_classification):
+	error = 0
+	for i in range(0, classification.shape[0]):
+		error += np.absolute(classification[i] - previous_classification[i])
+	return error
+
+def update(data, means, classification):
+	means = np.zeros(means.shape, dtype=np.float32)
+	count = np.zeros(means.shape, dtype=np.int)
+	one = np.ones(means.shape[1], dtype=np.int)
+	for i in range(0, classification.shape[0]):
+		means[classification[i]] += data[i]
+		count[classification[i]] += one
+	return np.true_divide(means, count)
+
+def draw(k, data, means, classification, iteration):
+	color = iter(plt.cm.rainbow(np.linspace(0, 1, k * 2)))
+	title = "Kernel-K-Means Iteration-" + str(iteration)
+	plt.title(title)
+	plt.clf()
+	for i in range(0, k):
+		col = next(color)
+		for j in range(0, data.shape[0]):
+			if classification[j] == i:
+				plt.scatter(data[j][0], data[j][1], s=8, c=col)
+	for i in range(0, k):
+		col = next(color)
+		plt.scatter(means[i][0], means[i][1], s=32, c=col)
+	plt.show()
+	#plt.savefig(title+'.png')
+
+
+def kernel_k_means(data, kernel_data):
+	# k is the number of cluster
+	k = 2
+	means, previous_classification, iteration = initialization(k) # means size: k*2 previous_classification: 3000
+	classification = classify(data, kernel_data, means, previous_classification) # classification: 3000
+	error = calculate_error(classification, previous_classification)
+	#draw(k, data, classification, iteration)
+	while(True):
+		iteration += 1
+		previous_classification = classification
+		classification = classify(data, kernel_data, means, classification)
+		error = calculate_error(classification, previous_classification)
+		print(means)
+		print(error)
+		if(error < 5):
+			break
+		#draw(k, data, means, classification, iteration)
+	means = update(data, means, classification)
+	draw(k, data, means, classification, iteration)
+	print(classification)
+
+
+if __name__ == "__main__":
+	data = read_input() # data size: 3000*2
+	kernel_data = compute_rbf_kernel(data)
+	kernel_k_means(data, kernel_data)
+	
