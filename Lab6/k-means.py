@@ -37,10 +37,11 @@ def calculate_error(classification, previous_classification):
 
 def update(data, means, classification):
 	means = np.zeros(means.shape, dtype=np.float32)
-	count = np.zeros(means.shape, dtype=int)
+	count = np.zeros(means.shape, dtype=np.int)
+	one = np.ones(means.shape[1], dtype=np.int)
 	for i in range(0, 3000):
 		means[classification[i]] += data[i]
-		count[classification[i]] += 1
+		count[classification[i]] += one
 	return np.true_divide(means, count)
 
 def draw(data, means, classification, iteration):
