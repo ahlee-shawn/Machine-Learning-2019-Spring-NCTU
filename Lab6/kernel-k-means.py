@@ -19,25 +19,25 @@ def read_input():
 	#return np.append(np.array(data1), np.array(data2)).reshape(3000, 2)
 	return np.array(data2).reshape(1500, 2)
 
-def compute_rbf_kernel(raw_data):
-	negative_gamma = -1 / 2
-	temp = squareform(np.exp(negative_gamma * pdist(raw_data, 'sqeuclidean')))
-	'''
-	kernel_data = np.zeros([raw_data.shape[0], raw_data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
-	for i in range(0, raw_data.shape[0]):
-		for j in range(i + 1, raw_data.shape[0]):
-			temp = np.exp(negative_gamma * np.linalg.norm(raw_data[i] - raw_data[j]))
+def compute_rbf_kernel(data):
+	negative_gamma = -1 / 10
+	#temp = squareform(np.exp(negative_gamma * pdist(raw_data, 'sqeuclidean')))
+	
+	kernel_data = np.zeros([data.shape[0], data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
+	for i in range(0, data.shape[0]):
+		for j in range(i + 1, data.shape[0]):
+			temp = np.exp(negative_gamma * np.linalg.norm(data[i] - data[j]))
 			kernel_data[i][j] = temp
 			kernel_data[j][i] = temp
-	print(kernel_data - temp)
-	'''
-	return temp
+	#print(kernel_data - temp)
+	
+	return kernel_data
 
 def initialization(k):
 	means = np.random.rand(k, 2)
 	previous_classification = []
 	for i in range(1500):
-		if i % 2 == 0:
+		if i % 2 == 1:
 			previous_classification.append(0)
 		else:
 			previous_classification.append(1)
@@ -48,16 +48,16 @@ def initialization(k):
 
 def second_term_of_calculate_distance(data, kernel_data, classification, data_number, cluster_number, k):
 	result = 0
-	number_in_cluser = 0
+	number_in_cluster = 0
 	for i in range(0, data.shape[0]):
 		if classification[i] == cluster_number:
-			number_in_cluser += 1
-	if number_in_cluser == 0:
-		number_in_cluser = 1
+			number_in_cluster += 1
+	if number_in_cluster == 0:
+		number_in_cluster = 1
 	for i in range(0, data.shape[0]):
 		if classification[i] == cluster_number:
 			result += kernel_data[data_number][i]
-	return -2 * (result / number_in_cluser)
+	return -2 * (result / number_in_cluster)
 
 def third_term_of_calculate_distance(kernel_data, classification, k):
 	temp = np.zeros(k, dtype=np.float32)
@@ -135,7 +135,7 @@ def kernel_k_means(data, kernel_data):
 		error = calculate_error(classification, previous_classification)
 		print(means)
 		print(error)
-		if(error < 5):
+		if(error < 20):
 			break
 		#draw(k, data, means, classification, iteration)
 	means = update(data, means, classification)
