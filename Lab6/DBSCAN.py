@@ -4,17 +4,12 @@ import csv
 from matplotlib.axes._axes import _log as matplotlib_axes_logger
 matplotlib_axes_logger.setLevel('ERROR')
 
-def read_input():
-	with open('moon.txt') as csv_file:
+def read_input(dataset):
+	with open(dataset) as csv_file:
 		csv_reader = csv.reader(csv_file, delimiter=',')
 		data1 = list(csv_reader)
 		data1 = [[float(y) for y in x] for x in data1]
-	with open('circle.txt') as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		data2 = list(csv_reader)
-		data2 = [[float(y) for y in x] for x in data2]
-	return np.append(np.array(data1), np.array(data2)).reshape(3000, 2)
-	#return np.array(data2).reshape(1500, 2)
+	return np.array(data1).reshape(1500, 2)
 
 def update(data, eps, i, j, classification, temp, min_points, current_cluster):
 	classification[i] = current_cluster
@@ -66,10 +61,7 @@ def draw(data, classification, index):
 if __name__ == "__main__":
 	eps = 0.1
 	min_points = 10
-	data = read_input() # data size: 3000*2
+	dataset = "moon.txt"
+	data = read_input(dataset) # data size: 3000*2
 	classification = dbscan(data, eps, min_points)
-	print(classification)
-	print(np.amax(classification))
-	print(np.amin(classification))
-	print(np.unique(classification))
 	draw(data, classification, np.unique(classification))
