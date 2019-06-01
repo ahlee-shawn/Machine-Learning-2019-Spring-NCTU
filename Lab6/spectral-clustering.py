@@ -39,6 +39,7 @@ def initialization(k, data):
 		for i in range(0, k):
 			means[i,:] = data[temp[i],:]
 	elif initialize_method == "k-means++":
+		means = np.zeros([k, 2], dtype=np.float32)
 		temp = np.random.randint(low=0, high=data.shape[0], size=1, dtype=np.int)
 		means[0,:] = data[temp,:]
 		temp = np.zeros(data.shape[0], dtype=np.float32)
@@ -131,6 +132,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 	k = 2
 	dataset = "circle.txt"
+	print("Dataset: {}".format(dataset))
 	data = read_input(dataset)
 	Weight = compute_rbf_kernel(data) # Weight size: 3000 * 3000
 	Degree = np.diag(np.sum(Weight, axis=1))
