@@ -52,6 +52,7 @@ def dbscan(data, eps, min_points, dataset):
 	draw(data, classification, np.unique(classification), iteration, dataset)
 
 def draw(data, classification, index, iteration, dataset):
+	plt.clf()
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, index.shape[0])))
 	for i in range(0, index.shape[0]):
 		col = next(color)
