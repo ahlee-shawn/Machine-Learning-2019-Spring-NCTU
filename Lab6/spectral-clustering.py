@@ -5,17 +5,12 @@ import csv
 from matplotlib.axes._axes import _log as matplotlib_axes_logger
 matplotlib_axes_logger.setLevel('ERROR')
 
-def read_input():
-	with open('moon.txt') as csv_file:
+def read_input(dataset):
+	with open(dataset) as csv_file:
 		csv_reader = csv.reader(csv_file, delimiter=',')
 		data1 = list(csv_reader)
 		data1 = [[float(y) for y in x] for x in data1]
-	with open('circle.txt') as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		data2 = list(csv_reader)
-		data2 = [[float(y) for y in x] for x in data2]
-	#return np.append(np.array(data1), np.array(data2)).reshape(3000, 2)
-	return np.array(data2).reshape(1500, 2)
+	return np.array(data1).reshape(1500, 2)
 
 def compute_rbf_kernel(data):
 	sigma = 0.1
@@ -114,13 +109,13 @@ def k_means(k, raw_data, data):
 		print(error)
 		if error < 5:
 			break
-	#draw(data, means, classification)
 	draw(raw_data, means, classification)
 	return classification
 
 if __name__ == "__main__":
 	k = 2
-	data = read_input()
+	dataset = "moon.txt"
+	data = read_input(dataset)
 	Weight = compute_rbf_kernel(data) # Weight size: 3000 * 3000
 	Degree = np.diag(np.sum(Weight, axis=1))
 	Laplacian = Degree - Weight
