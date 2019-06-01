@@ -8,14 +8,21 @@ from matplotlib.axes._axes import _log as matplotlib_axes_logger
 matplotlib_axes_logger.setLevel('ERROR')
 
 def read_input(dataset):
-	with open(dataset) as csv_file:
-		csv_reader = csv.reader(csv_file, delimiter=',')
-		data1 = list(csv_reader)
-		data1 = [[float(y) for y in x] for x in data1]
-	return np.array(data1).reshape(1500, 2)
+	if dataset == "test.txt":
+		with open(dataset) as csv_file:
+			csv_reader = csv.reader(csv_file, delimiter=' ')
+			data1 = list(csv_reader)
+			data1 = [[float(y) for y in x] for x in data1]
+		return np.array(data1).reshape(400, 2)
+	else:
+		with open(dataset) as csv_file:
+			csv_reader = csv.reader(csv_file, delimiter=',')
+			data1 = list(csv_reader)
+			data1 = [[float(y) for y in x] for x in data1]
+		return np.array(data1).reshape(1500, 2)
 
 def compute_rbf_kernel(data):
-	sigma = 0.05
+	sigma = 5
 	kernel_data = np.zeros([data.shape[0], data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
 	for i in range(0, data.shape[0]):
 		for j in range(i + 1, data.shape[0]):
@@ -27,10 +34,10 @@ def compute_rbf_kernel(data):
 	
 	return kernel_data
 
-def initialization(k):
+def initialization(data, k):
 	means = np.random.rand(k, 2)
 	previous_classification = []
-	for i in range(1500):
+	for i in range(data.shape[0]):
 		if i % 2 == 1:
 			previous_classification.append(0)
 		else:
@@ -91,10 +98,9 @@ def update(data, means, classification):
 		count[classification[i]] += one
 	return np.true_divide(means, count)
 
-def draw(k, data, means, classification, iteration):
+def draw(k, data, means, classification, iteration, dataset):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, k * 2)))
 	title = "Kernel-K-Means Iteration-" + str(iteration)
-	plt.title(title)
 	plt.clf()
 	for i in range(0, k):
 		col = next(color)
@@ -104,35 +110,38 @@ def draw(k, data, means, classification, iteration):
 	for i in range(0, k):
 		col = next(color)
 		plt.scatter(means[i][0], means[i][1], s=32, c=col)
-	plt.show()
+	plt.suptitle(title)
+	if dataset == "moon.txt":
+		plt.savefig("./Screenshots/Kernel-K-Means/moon/" + title + ".png")
+	elif dataset == "moon.txt":
+		plt.savefig("./Screenshots/Kernel-K-Means/circle/" + title + ".png")
+	else:
+		plt.savefig("./Screenshots/Kernel-K-Means/test/" + title + ".png")
 	#plt.savefig(title+'.png')
 
 
-def kernel_k_means(data, kernel_data):
+def kernel_k_means(data, kernel_data, dataset):
 	# k is the number of cluster
 	k = 2
-	means, previous_classification, iteration, prev_error = initialization(k) # means size: k*2 previous_classification: 3000
+	means, previous_classification, iteration, prev_error = initialization(data, k) # means size: k*2 previous_classification: 3000
 	classification = classify(data, kernel_data, means, previous_classification) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	#draw(k, data, classification, iteration)
 	while(True):
+		draw(k, data, means, classification, iteration, dataset)
 		iteration += 1
 		previous_classification = classification
 		classification = classify(data, kernel_data, means, classification)
 		error = calculate_error(classification, previous_classification)
-		#print(means)
 		print(error)
 		if error == prev_error:
 			break
 		prev_error = error
-		#draw(k, data, means, classification, iteration)
 	means = update(data, means, classification)
-	draw(k, data, means, classification, iteration)
-	print(classification)
+	draw(k, data, means, classification, iteration, dataset)
 
 if __name__ == "__main__":
-	dataset = "moon.txt"
+	dataset = "test.txt"
 	data = read_input(dataset) # data size: 3000*2
 	kernel_data = compute_rbf_kernel(data)
-	kernel_k_means(data, kernel_data)
+	kernel_k_means(data, kernel_data, dataset)
 	
