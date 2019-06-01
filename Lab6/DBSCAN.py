@@ -26,11 +26,13 @@ def update(data, eps, i, j, classification, temp, min_points, current_cluster):
 						classification[q] = current_cluster
 	return classification
 
-def dbscan(data, eps, min_points):
+def dbscan(data, eps, min_points, dataset):
 	classification = np.full((data.shape[0]), -1)
 	cluster_number = 0
 	current_cluster = 0
+	iteration = 0
 	for i in range(0, data.shape[0]):
+		iteration += 1
 		if classification[i] == -1:
 			current_cluster = cluster_number
 		else:
@@ -46,22 +48,28 @@ def dbscan(data, eps, min_points):
 						update(data, eps, i, j, classification, temp, min_points, current_cluster)
 						cluster_number += 1
 						break
-	return classification
+		draw(data, classification, np.unique(classification), iteration, dataset)
+	draw(data, classification, np.unique(classification), iteration, dataset)
 
-def draw(data, classification, index):
+def draw(data, classification, index, iteration, dataset):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, index.shape[0])))
 	for i in range(0, index.shape[0]):
 		col = next(color)
 		for j in range(0, classification.shape[0]):
-			if classification[j] == index[i]:
+			if classification[j] == -1:
+				plt.scatter(data[j][0], data[j][1], s=8, c='black')
+			elif classification[j] == index[i]:
 				plt.scatter(data[j][0], data[j][1], s=8, c=col)
-	plt.show()
-
+	title = "DBSCAN Iteration-" + str(iteration)
+	plt.suptitle(title)
+	if dataset == "moon.txt":
+		plt.savefig("./Screenshots/DBSCAN/moon/" + title + ".png")
+	else:
+		plt.savefig("./Screenshots/DBSCAN/circle/" + title + ".png")
 
 if __name__ == "__main__":
 	eps = 0.1
 	min_points = 10
 	dataset = "moon.txt"
-	data = read_input(dataset) # data size: 3000*2
-	classification = dbscan(data, eps, min_points)
-	draw(data, classification, np.unique(classification))
+	data = read_input(dataset) # data size: 1500*2
+	classification = dbscan(data, eps, min_points, dataset)
