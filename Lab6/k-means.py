@@ -9,7 +9,7 @@ def read_input(dataset):
 		csv_reader = csv.reader(csv_file, delimiter=',')
 		data1 = list(csv_reader)
 		data1 = [[float(y) for y in x] for x in data1]
-	return np.array(data2).reshape(1500, 2)
+	return np.array(data1).reshape(1500, 2)
 
 def initialization(k):
 	means = np.random.rand(k, 2)
