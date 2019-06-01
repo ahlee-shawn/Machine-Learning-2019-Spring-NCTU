@@ -114,18 +114,19 @@ def draw(k, data, means, classification, iteration, dataset):
 		col = next(color)
 		plt.scatter(means[i][0], means[i][1], s=32, c=col)
 	plt.suptitle(title)
+	plt.show()
+	'''
 	if dataset == "moon.txt":
 		plt.savefig("./Screenshots/Kernel-K-Means/moon/" + title + ".png")
 	elif dataset == "circle.txt":
 		plt.savefig("./Screenshots/Kernel-K-Means/circle/" + title + ".png")
 	else:
 		plt.savefig("./Screenshots/Kernel-K-Means/test/" + title + ".png")
-	#plt.savefig(title+'.png')
-
+	'''
 
 def kernel_k_means(data, kernel_data, dataset):
 	# k is the number of cluster
-	k = 2
+	k = 3
 	means, previous_classification, iteration, prev_error = initialization(data, k) # means size: k*2 previous_classification: 3000
 	draw(k, data, means, previous_classification, iteration, dataset)
 	classification = classify(data, kernel_data, means, previous_classification) # classification: 3000
