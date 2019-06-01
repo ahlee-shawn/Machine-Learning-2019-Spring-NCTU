@@ -43,6 +43,7 @@ def update(data, means, classification):
 
 def draw(data, means, classification, iteration, dataset):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, means.shape[0] * 2)))
+	plt.clf()
 	for i in range(0, means.shape[0]):
 		col = next(color)
 		for j in range(0, data.shape[0]):
