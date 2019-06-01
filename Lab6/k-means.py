@@ -54,10 +54,13 @@ def draw(data, means, classification, iteration, dataset):
 		plt.scatter(means[i][0], means[i][1], s=32, c=col)
 	title = "K-Means Iteration-" + str(iteration)
 	plt.suptitle(title)
+	plt.show()
+	'''
 	if dataset == "moon.txt":
 		plt.savefig("./Screenshots/K-Means/moon/" + title + ".png")
 	else:
 		plt.savefig("./Screenshots/K-Means/circle/" + title + ".png")
+	'''
 
 def k_means(data, dataset):
 	# k is the number of cluster
@@ -65,16 +68,17 @@ def k_means(data, dataset):
 	means, previous_classification, iteration = initialization(k) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	draw(data, means, classification, iteration, dataset)
+	#draw(data, means, classification, iteration, dataset)
 	while(True):
 		iteration += 1
 		means = update(data, means, classification)
 		previous_classification = classification
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
-		draw(data, means, classification, iteration, dataset)
+		#draw(data, means, classification, iteration, dataset)
 		if error < 3:
 			break
+	draw(data, means, classification, iteration, dataset)
 
 if __name__ == "__main__":
 	dataset = "circle.txt"
