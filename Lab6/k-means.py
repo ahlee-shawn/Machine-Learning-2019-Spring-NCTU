@@ -13,12 +13,12 @@ def read_input(dataset):
 
 def initialization(k):
 	means = np.random.rand(k, 2)
-	previous_classification = np.zeros([3000], np.int)
+	previous_classification = np.zeros([1500], np.int)
 	return means, previous_classification, 1 # 1 for iteration
 
 def classify(data, means):
-	classification = np.zeros([3000], dtype=int)
-	for i in range(0, 3000):
+	classification = np.zeros([data.shape[0]], dtype=int)
+	for i in range(0, data.shape[0]):
 		temp = np.zeros([means.shape[0]], dtype=np.float32) # temp size: k
 		for j in range(0, means.shape[0]):
 			delta = abs(np.subtract(data[i,:], means[j,:]))
@@ -28,7 +28,7 @@ def classify(data, means):
 
 def calculate_error(classification, previous_classification):
 	error = 0
-	for i in range(0, 3000):
+	for i in range(0, classification.shape[0]):
 		error += np.absolute(classification[i] - previous_classification[i])
 	return error
 
@@ -36,16 +36,13 @@ def update(data, means, classification):
 	means = np.zeros(means.shape, dtype=np.float32)
 	count = np.zeros(means.shape, dtype=np.int)
 	one = np.ones(means.shape[1], dtype=np.int)
-	for i in range(0, 3000):
+	for i in range(0, data.shape[0]):
 		means[classification[i]] += data[i]
 		count[classification[i]] += one
 	return np.true_divide(means, count)
 
-def draw(data, means, classification, iteration):
+def draw(data, means, classification, iteration, dataset):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, means.shape[0] * 2)))
-	title = "K-Means Iteration-" + str(iteration)
-	plt.title(title)
-	plt.clf()
 	for i in range(0, means.shape[0]):
 		col = next(color)
 		for j in range(0, data.shape[0]):
@@ -54,25 +51,30 @@ def draw(data, means, classification, iteration):
 	for i in range(0, means.shape[0]):
 		col = next(color)
 		plt.scatter(means[i][0], means[i][1], s=32, c=col)
-	plt.savefig(title+'.png')
+	title = "K-Means Iteration-" + str(iteration)
+	plt.suptitle(title)
+	if dataset == "moon.txt":
+		plt.savefig("./Screenshots/K-Means/moon/" + title + ".png")
+	else:
+		plt.savefig("./Screenshots/K-Means/circle/" + title + ".png")
 
-def k_means(data):
+def k_means(data, dataset):
 	# k is the number of cluster
 	k = 2
 	means, previous_classification, iteration = initialization(k) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	draw(data, means, classification, iteration)
+	draw(data, means, classification, iteration, dataset)
 	while(error):
 		iteration += 1
 		means = update(data, means, classification)
 		previous_classification = classification
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
-		draw(data, means, classification, iteration)
+		draw(data, means, classification, iteration, dataset)
 		print(error)
 
 if __name__ == "__main__":
 	dataset = "moon.txt"
 	data = read_input(dataset) # data size: 3000*2
-	k_means(data)
+	k_means(data, dataset)
