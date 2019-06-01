@@ -20,16 +20,15 @@ def read_input():
 	return np.array(data2).reshape(1500, 2)
 
 def compute_rbf_kernel(data):
-	negative_gamma = -1 / 10
-	#temp = squareform(np.exp(negative_gamma * pdist(raw_data, 'sqeuclidean')))
-	
+	sigma = 0.05
 	kernel_data = np.zeros([data.shape[0], data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
 	for i in range(0, data.shape[0]):
 		for j in range(i + 1, data.shape[0]):
-			temp = np.exp(negative_gamma * np.linalg.norm(data[i] - data[j]))
+			delta = abs(np.subtract(data[i,:], data[j,:]))
+			squaredEuclidean = np.square(delta).sum(axis=0)
+			temp = np.exp(-(squaredEuclidean) / (2 * sigma ** 2))
 			kernel_data[i][j] = temp
 			kernel_data[j][i] = temp
-	#print(kernel_data - temp)
 	
 	return kernel_data
 
@@ -41,10 +40,7 @@ def initialization(k):
 			previous_classification.append(0)
 		else:
 			previous_classification.append(1)
-	#previous_classification = np.zeros([1500], dtype=np.int)
-	#previous_classification = np.random.randint(2, size=3000)
-	print(np.asarray(previous_classification))
-	return means, np.asarray(previous_classification), 1 # 1 for iteration
+	return means, np.asarray(previous_classification), 1, 0 # 1 for iteration 0 for prev_error
 
 def second_term_of_calculate_distance(data, kernel_data, classification, data_number, cluster_number, k):
 	result = 0
@@ -78,15 +74,11 @@ def third_term_of_calculate_distance(kernel_data, classification, k):
 def classify(data, kernel_data, means, classification):
 	temp_classification = np.zeros([data.shape[0]], dtype=np.int)
 	third_term = third_term_of_calculate_distance(kernel_data, classification, means.shape[0])
-	print(third_term)
 	for i in range(0, data.shape[0]):
 		temp = np.zeros([means.shape[0]], dtype=np.float32) # temp size: k
 		for j in range(0, means.shape[0]):
 			temp[j] = second_term_of_calculate_distance(data, kernel_data, classification, i, j, means.shape[0]) + third_term[j]
-		#print(temp)
 		temp_classification[i] = np.argmin(temp)
-		#print(temp_classification[i])
-	print(temp_classification)
 	return temp_classification
 
 def calculate_error(classification, previous_classification):
@@ -124,7 +116,7 @@ def draw(k, data, means, classification, iteration):
 def kernel_k_means(data, kernel_data):
 	# k is the number of cluster
 	k = 2
-	means, previous_classification, iteration = initialization(k) # means size: k*2 previous_classification: 3000
+	means, previous_classification, iteration, prev_error = initialization(k) # means size: k*2 previous_classification: 3000
 	classification = classify(data, kernel_data, means, previous_classification) # classification: 3000
 	error = calculate_error(classification, previous_classification)
 	#draw(k, data, classification, iteration)
@@ -133,15 +125,15 @@ def kernel_k_means(data, kernel_data):
 		previous_classification = classification
 		classification = classify(data, kernel_data, means, classification)
 		error = calculate_error(classification, previous_classification)
-		print(means)
+		#print(means)
 		print(error)
-		if(error < 20):
+		if error == prev_error:
 			break
+		prev_error = error
 		#draw(k, data, means, classification, iteration)
 	means = update(data, means, classification)
 	draw(k, data, means, classification, iteration)
 	print(classification)
-
 
 if __name__ == "__main__":
 	data = read_input() # data size: 3000*2
