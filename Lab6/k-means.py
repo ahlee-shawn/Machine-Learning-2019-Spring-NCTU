@@ -81,6 +81,6 @@ def k_means(data, dataset):
 	draw(data, means, classification, iteration, dataset)
 
 if __name__ == "__main__":
-	dataset = "circle.txt"
+	dataset = "moon.txt"
 	data = read_input(dataset) # data size: 3000*2
 	k_means(data, dataset)
