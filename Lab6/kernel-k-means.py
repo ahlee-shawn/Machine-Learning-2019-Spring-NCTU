@@ -25,7 +25,7 @@ def compute_rbf_kernel(data, dataset):
 	if dataset == "test.txt":
 		sigma = 5
 	else:
-		sigma = 0.1
+		sigma = 0.05
 	kernel_data = np.zeros([data.shape[0], data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
 	for i in range(0, data.shape[0]):
 		for j in range(i + 1, data.shape[0]):
@@ -126,13 +126,13 @@ def draw(k, data, means, classification, iteration, dataset):
 
 def kernel_k_means(data, kernel_data, dataset):
 	# k is the number of cluster
-	k = 3
+	k = 2
 	means, previous_classification, iteration, prev_error = initialization(data, k) # means size: k*2 previous_classification: 3000
-	draw(k, data, means, previous_classification, iteration, dataset)
+	#draw(k, data, means, previous_classification, iteration, dataset)
 	classification = classify(data, kernel_data, means, previous_classification) # classification: 3000
 	error = calculate_error(classification, previous_classification)
 	while(True):
-		draw(k, data, means, classification, iteration, dataset)
+		#draw(k, data, means, classification, iteration, dataset)
 		iteration += 1
 		previous_classification = classification
 		classification = classify(data, kernel_data, means, classification)
@@ -145,7 +145,7 @@ def kernel_k_means(data, kernel_data, dataset):
 	draw(k, data, means, classification, iteration, dataset)
 
 if __name__ == "__main__":
-	dataset = "moon.txt"
+	dataset = "circle.txt"
 	data = read_input(dataset) # data size: 3000*2
 	kernel_data = compute_rbf_kernel(data, dataset)
 	kernel_k_means(data, kernel_data, dataset)
