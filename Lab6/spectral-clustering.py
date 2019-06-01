@@ -28,7 +28,7 @@ def compute_rbf_kernel(data):
 
 def initialization(k, data):
 	temp = np.random.randint(low=0, high=data.shape[0], size=k)
-	means = np.zeros([k, 2], dtype=np.float32)
+	means = np.zeros([k, k], dtype=np.float32)
 	for i in range(0, k):
 		means[i,:] = data[temp[i],:]
 	previous_classification = []
@@ -77,10 +77,10 @@ def draw(k, data, classification, iteration, dataset):
 				plt.scatter(data[j][0], data[j][1], s=8, c=col)
 	title = "Spectral-Clustering Iteration-" + str(iteration)
 	plt.suptitle(title)
-	if dataset == "moon.txt":
+	'''if dataset == "moon.txt":
 		plt.savefig("./Screenshots/Spectral-Clustering/moon/" + title + ".png")
 	else:
-		plt.savefig("./Screenshots/Spectral-Clustering/circle/" + title + ".png")
+		plt.savefig("./Screenshots/Spectral-Clustering/circle/" + title + ".png")'''
 	plt.show()
 
 def draw_eigen_space(k, data, classification):
@@ -101,22 +101,23 @@ def k_means(k, raw_data, data):
 	means, previous_classification, iteration = initialization(k, data) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	draw(k, raw_data, classification, iteration, dataset)
+	#draw(k, raw_data, classification, iteration, dataset)
 	while(True):
 		iteration += 1
 		means = update(data, means, classification)
 		previous_classification = classification
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
-		draw(k, raw_data, classification, iteration, dataset)
+		#draw(k, raw_data, classification, iteration, dataset)
 		print(error)
 		if error < 5:
 			break
+	draw(k, raw_data, classification, iteration, dataset)
 	return classification
 
 if __name__ == "__main__":
 	k = 2
-	dataset = "moon.txt"
+	dataset = "circle.txt"
 	data = read_input(dataset)
 	Weight = compute_rbf_kernel(data) # Weight size: 3000 * 3000
 	Degree = np.diag(np.sum(Weight, axis=1))
