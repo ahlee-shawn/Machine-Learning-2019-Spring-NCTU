@@ -67,31 +67,33 @@ def update(data, means, classification):
 			count[i] += one
 	return np.true_divide(means, count)
 
-def draw(data, means, classification):
-	color = iter(plt.cm.rainbow(np.linspace(0, 1, means.shape[0] * 2)))
-	title = "Spectral-Clustering"
-	print(classification)
-	plt.title(title)
-	plt.clf()
-	for i in range(0, means.shape[0]):
-		col = next(color)
-		for j in range(0, data.shape[0]):
-			if classification[j] == i:
-				plt.scatter(data[j][0], data[j][1], s=8, c=col)
-	'''
-	for i in range(0, means.shape[0]):
-		col = next(color)
-		plt.scatter(means[i][0], means[i][1], s=32, c=col)
-	'''
-	plt.show()
-
-def draw_eigen_space(k, data, classification):
+def draw(k, data, classification, iteration, dataset):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, k)))
+	plt.clf()
 	for i in range(0, k):
 		col = next(color)
 		for j in range(0, data.shape[0]):
 			if classification[j] == i:
 				plt.scatter(data[j][0], data[j][1], s=8, c=col)
+	title = "Spectral-Clustering Iteration-" + str(iteration)
+	plt.suptitle(title)
+	if dataset == "moon.txt":
+		plt.savefig("./Screenshots/Spectral-Clustering/moon/" + title + ".png")
+	else:
+		plt.savefig("./Screenshots/Spectral-Clustering/circle/" + title + ".png")
+	plt.show()
+
+def draw_eigen_space(k, data, classification):
+	color = iter(plt.cm.rainbow(np.linspace(0, 1, k)))
+	plt.clf()
+	title = "Spectral-Clustering in Eigen-Space"
+	plt.suptitle(title)
+	for i in range(0, k):
+		col = next(color)
+		for j in range(0, data.shape[0]):
+			if classification[j] == i:
+				plt.scatter(data[j][0], data[j][1], s=8, c=col)
+	plt.savefig("./Screenshots/Spectral-Clustering/moon/" + title + ".png")
 	plt.show()
 
 def k_means(k, raw_data, data):
@@ -99,17 +101,17 @@ def k_means(k, raw_data, data):
 	means, previous_classification, iteration = initialization(k, data) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	#draw(data, means, classification)
+	draw(k, raw_data, classification, iteration, dataset)
 	while(True):
 		iteration += 1
 		means = update(data, means, classification)
 		previous_classification = classification
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
+		draw(k, raw_data, classification, iteration, dataset)
 		print(error)
 		if error < 5:
 			break
-	draw(raw_data, means, classification)
 	return classification
 
 if __name__ == "__main__":
