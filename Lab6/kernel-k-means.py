@@ -21,8 +21,11 @@ def read_input(dataset):
 			data1 = [[float(y) for y in x] for x in data1]
 		return np.array(data1).reshape(1500, 2)
 
-def compute_rbf_kernel(data):
-	sigma = 5
+def compute_rbf_kernel(data, dataset):
+	if dataset == "test.txt":
+		sigma = 5
+	else:
+		sigma = 0.01
 	kernel_data = np.zeros([data.shape[0], data.shape[0]], dtype=np.float32) # kernel_data size: 3000*3000
 	for i in range(0, data.shape[0]):
 		for j in range(i + 1, data.shape[0]):
@@ -140,8 +143,8 @@ def kernel_k_means(data, kernel_data, dataset):
 	draw(k, data, means, classification, iteration, dataset)
 
 if __name__ == "__main__":
-	dataset = "test.txt"
+	dataset = "circle.txt"
 	data = read_input(dataset) # data size: 3000*2
-	kernel_data = compute_rbf_kernel(data)
+	kernel_data = compute_rbf_kernel(data, dataset)
 	kernel_k_means(data, kernel_data, dataset)
 	
