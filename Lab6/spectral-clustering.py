@@ -72,7 +72,7 @@ def update(data, means, classification):
 			count[i] += one
 	return np.true_divide(means, count)
 
-def draw(k, data, means, classification):
+def draw(data, means, classification):
 	color = iter(plt.cm.rainbow(np.linspace(0, 1, means.shape[0] * 2)))
 	title = "Spectral-Clustering"
 	print(classification)
@@ -90,13 +90,21 @@ def draw(k, data, means, classification):
 	'''
 	plt.show()
 
+def draw_eigen_space(k, data, classification):
+	color = iter(plt.cm.rainbow(np.linspace(0, 1, k)))
+	for i in range(0, k):
+		col = next(color)
+		for j in range(0, data.shape[0]):
+			if classification[j] == i:
+				plt.scatter(data[j][0], data[j][1], s=8, c=col)
+	plt.show()
+
 def k_means(k, raw_data, data):
 	# k is the number of cluster
 	means, previous_classification, iteration = initialization(k, data) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
-	print(classification)
-	#draw(k, data, means, classification)
+	#draw(data, means, classification)
 	while(True):
 		iteration += 1
 		means = update(data, means, classification)
@@ -106,8 +114,9 @@ def k_means(k, raw_data, data):
 		print(error)
 		if error < 5:
 			break
-	#draw(k, data, means, classification)
-	draw(k, raw_data, means, classification)
+	#draw(data, means, classification)
+	draw(raw_data, means, classification)
+	return classification
 
 if __name__ == "__main__":
 	k = 2
@@ -119,4 +128,6 @@ if __name__ == "__main__":
 	idx = np.argsort(eigen_values)
 	eigen_vectors = eigen_vectors[:,idx]
 	U = (eigen_vectors[:,:k+1])[:,1:]
-	k_means(k, data, U)
+	classification = k_means(k, data, U)
+	if k == 2:
+		draw_eigen_space(k, U, classification)
