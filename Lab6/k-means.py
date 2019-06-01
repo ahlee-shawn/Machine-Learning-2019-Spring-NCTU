@@ -25,7 +25,8 @@ def classify(data, means):
 	for i in range(0, 3000):
 		temp = np.zeros([means.shape[0]], dtype=np.float32) # temp size: k
 		for j in range(0, means.shape[0]):
-			temp[j] = np.linalg.norm(data[i] - means[j])
+			delta = abs(np.subtract(data[i,:], means[j,:]))
+			temp[j] = np.square(delta).sum(axis=0)
 		classification[i] = np.argmin(temp)
 	return classification
 
