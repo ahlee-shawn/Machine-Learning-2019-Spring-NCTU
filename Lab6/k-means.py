@@ -66,16 +66,17 @@ def k_means(data, dataset):
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
 	draw(data, means, classification, iteration, dataset)
-	while(error):
+	while(True):
 		iteration += 1
 		means = update(data, means, classification)
 		previous_classification = classification
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
 		draw(data, means, classification, iteration, dataset)
-		print(error)
+		if error < 3:
+			break
 
 if __name__ == "__main__":
-	dataset = "moon.txt"
+	dataset = "circle.txt"
 	data = read_input(dataset) # data size: 3000*2
 	k_means(data, dataset)
