@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
-
-from scipy.spatial.distance import cdist, pdist, squareform
+import time
 
 from matplotlib.axes._axes import _log as matplotlib_axes_logger
 matplotlib_axes_logger.setLevel('ERROR')
@@ -38,14 +37,35 @@ def compute_rbf_kernel(data, dataset):
 	return kernel_data
 
 def initialization(data, k):
+	initialize_method = "random"
+	print("Initialization Method: {}".format(initialize_method))
 	means = np.random.rand(k, 2)
-	previous_classification = []
-	for i in range(data.shape[0]):
-		if i % 2 == 1:
-			previous_classification.append(0)
-		else:
-			previous_classification.append(1)
+	if initialize_method == "random":
+		previous_classification = np.random.randint(2, size=data.shape[0])
+	elif initialize_method == "mod2":
+		previous_classification = []
+		for i in range(data.shape[0]):
+			if i % 2 == 1:
+				previous_classification.append(0)
+			else:
+				previous_classification.append(1)
+		previous_classification = np.asarray(previous_classification)
+	elif initialize_method == "compare distance to origin with mean":
+		previous_classification = np.zeros(data.shape[0], dtype=np.int)
+		temp = np.zeros(data.shape[0], dtype=np.float32)
+		zero = np.zeros([1, 2], dtype=np.float32)
+		for i in range(0, data.shape[0]):
+			temp[i] = np.linalg.norm(data[i,:] - zero[0,:])
+		mean_temp = np.mean(temp)
+		for i in range(0, data.shape[0]):
+			if temp[i] >= mean_temp:
+				previous_classification[i] = 0
+			else:
+				previous_classification[i] = 1
 	return means, np.asarray(previous_classification), 1, 0 # 1 for iteration 0 for prev_error
+	
+	
+	
 
 def second_term_of_calculate_distance(data, kernel_data, classification, data_number, cluster_number, k):
 	result = 0
@@ -137,15 +157,19 @@ def kernel_k_means(data, kernel_data, dataset):
 		previous_classification = classification
 		classification = classify(data, kernel_data, means, classification)
 		error = calculate_error(classification, previous_classification)
-		print(error)
+		#print(error)
 		if error == prev_error:
 			break
 		prev_error = error
 	means = update(data, means, classification)
-	draw(k, data, means, classification, iteration, dataset)
+	#draw(k, data, means, classification, iteration, dataset)
+	print("Elapsed Time: {}".format(time.time() - start_time))
+	print("Iterations to coverged: {}".format(str(iteration)))
 
 if __name__ == "__main__":
+	start_time = time.time()
 	dataset = "circle.txt"
+	print("Dataset: {}".format(dataset))
 	data = read_input(dataset) # data size: 3000*2
 	kernel_data = compute_rbf_kernel(data, dataset)
 	kernel_k_means(data, kernel_data, dataset)

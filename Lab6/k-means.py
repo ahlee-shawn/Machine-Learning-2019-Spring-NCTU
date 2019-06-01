@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import time
 from matplotlib.axes._axes import _log as matplotlib_axes_logger
 matplotlib_axes_logger.setLevel('ERROR')
 
@@ -11,9 +12,27 @@ def read_input(dataset):
 		data1 = [[float(y) for y in x] for x in data1]
 	return np.array(data1).reshape(1500, 2)
 
-def initialization(k):
-	means = np.random.rand(k, 2)
+def initialization(data, k):
+	initialize_method = "randomly generate"
+	print("Initialization Method: {}".format(initialize_method))
 	previous_classification = np.zeros([1500], np.int)
+	if initialize_method == "randomly generate":
+		means = np.random.rand(k, 2)
+	elif initialize_method == "randomly assign":
+		temp = np.random.randint(low=0, high=data.shape[0], size=k)
+		means = np.zeros([k, 2], dtype=np.float32)
+		for i in range(0, k):
+			means[i,:] = data[temp[i],:]
+	elif initialize_method == "k-means++":
+		means = np.zeros([k, 2], dtype=np.float32)
+		temp = np.random.randint(low=0, high=data.shape[0], size=1, dtype=np.int)
+		means[0,:] = data[temp,:]
+		temp = np.zeros(data.shape[0], dtype=np.float32)
+		for i in range(0, data.shape[0]):
+			temp[i] = np.linalg.norm(data[i,:] - means[0,:])
+		temp = temp / temp.sum()
+		temp = np.random.choice(data.shape[0], 1, p=temp)
+		means[1,:] = data[temp,:]
 	return means, previous_classification, 1 # 1 for iteration
 
 def classify(data, means):
@@ -65,7 +84,7 @@ def draw(data, means, classification, iteration, dataset):
 def k_means(data, dataset):
 	# k is the number of cluster
 	k = 2
-	means, previous_classification, iteration = initialization(k) # means size: k*2 previous_classification: 3000
+	means, previous_classification, iteration = initialization(data, k) # means size: k*2 previous_classification: 3000
 	classification = classify(data, means) # classification: 3000
 	error = calculate_error(classification, previous_classification)
 	#draw(data, means, classification, iteration, dataset)
@@ -78,9 +97,13 @@ def k_means(data, dataset):
 		#draw(data, means, classification, iteration, dataset)
 		if error < 3:
 			break
-	draw(data, means, classification, iteration, dataset)
+	print("Elapsed Time: {}".format(time.time() - start_time))
+	print("Iterations to coverged: {}".format(str(iteration)))
+	#draw(data, means, classification, iteration, dataset)
 
 if __name__ == "__main__":
+	start_time = time.time()
 	dataset = "moon.txt"
+	print("Dataset: {}".format(dataset))
 	data = read_input(dataset) # data size: 3000*2
 	k_means(data, dataset)

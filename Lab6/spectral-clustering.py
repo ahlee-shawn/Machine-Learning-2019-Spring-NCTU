@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import time
 
 from matplotlib.axes._axes import _log as matplotlib_axes_logger
 matplotlib_axes_logger.setLevel('ERROR')
@@ -27,16 +28,25 @@ def compute_rbf_kernel(data):
 	return kernel_data
 
 def initialization(k, data):
-	temp = np.random.randint(low=0, high=data.shape[0], size=k)
-	means = np.zeros([k, k], dtype=np.float32)
-	for i in range(0, k):
-		means[i,:] = data[temp[i],:]
-	previous_classification = []
-	for i in range(data.shape[0]):
-		if i % 2 == 0:
-			previous_classification.append(0)
-		else:
-			previous_classification.append(1)
+	initialize_method = "k-means++"
+	print("Initialization Method: {}".format(initialize_method))
+	previous_classification = np.zeros([1500], np.int)
+	if initialize_method == "randomly generate":
+		means = np.random.rand(k, 2)
+	elif initialize_method == "randomly assign":
+		temp = np.random.randint(low=0, high=data.shape[0], size=k)
+		means = np.zeros([k, 2], dtype=np.float32)
+		for i in range(0, k):
+			means[i,:] = data[temp[i],:]
+	elif initialize_method == "k-means++":
+		temp = np.random.randint(low=0, high=data.shape[0], size=1, dtype=np.int)
+		means[0,:] = data[temp,:]
+		temp = np.zeros(data.shape[0], dtype=np.float32)
+		for i in range(0, data.shape[0]):
+			temp[i] = np.linalg.norm(data[i,:] - means[0,:])
+		temp = temp / temp.sum()
+		temp = np.random.choice(data.shape[0], 1, p=temp)
+		means[1,:] = data[temp,:]
 	return means, np.asarray(previous_classification), 1 # 1 for iteration
 
 def classify(data, means):
@@ -109,13 +119,16 @@ def k_means(k, raw_data, data):
 		classification = classify(data, means)
 		error = calculate_error(classification, previous_classification)
 		#draw(k, raw_data, classification, iteration, dataset)
-		print(error)
+		#print(error)
 		if error < 5:
 			break
-	draw(k, raw_data, classification, iteration, dataset)
+	#draw(k, raw_data, classification, iteration, dataset)
+	print("Elapsed Time: {}".format(time.time() - start_time))
+	print("Iterations to coverged: {}".format(str(iteration)))
 	return classification
 
 if __name__ == "__main__":
+	start_time = time.time()
 	k = 2
 	dataset = "circle.txt"
 	data = read_input(dataset)
@@ -127,5 +140,5 @@ if __name__ == "__main__":
 	eigen_vectors = eigen_vectors[:,idx]
 	U = (eigen_vectors[:,:k+1])[:,1:]
 	classification = k_means(k, data, U)
-	if k == 2:
-		draw_eigen_space(k, U, classification)
+	'''if k == 2:
+		draw_eigen_space(k, U, classification)'''
