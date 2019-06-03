@@ -11,44 +11,43 @@ def read_input(dataset):
 		data1 = [[float(y) for y in x] for x in data1]
 	return np.array(data1).reshape(1500, 2)
 
-def update(data, eps, i, j, classification, temp, min_points, current_cluster):
-	classification[i] = current_cluster
-	for p in range(0, min_points):
-		classification[temp[p]] = current_cluster
-	for p in range(j + 1, classification.shape[0]):
-		if np.linalg.norm(data[i] - data[p]) < eps:
-			if classification[p] == -1:
-				classification[p] = current_cluster
-			else:
-				temp = classification[p]
-				for q in range(0, classification.shape[0]):
-					if classification[q] == temp:
-						classification[q] = current_cluster
-	return classification
+def calculate_neighbor(data, eps, min_points):
+	result = np.zeros(data.shape[0], dtype=np.int)
+	for i in range(0, data.shape[0]):
+		temp = 0
+		for j in range(0, data.shape[0]):
+			if np.linalg.norm(data[i] - data[j]) <= eps:
+				temp += 1
+			if temp == min_points:
+				result[i] = 1
+				break
+	return result
+
+def update(data, eps, i, classification, neighbor, iteration, cluster_number, dataset):
+	if classification[i] == -1:
+		uncheck_list = []
+		uncheck_list.append(i)
+		classification[i] = cluster_number
+		draw(data, classification, np.unique(classification), iteration, dataset)
+		while(len(uncheck_list)):
+			i = uncheck_list.pop(0)
+			for j in range(0, data.shape[0]):
+				if classification[j] == -1:
+					if np.linalg.norm(data[i] - data[j]) <= eps and classification[j] == -1:
+						classification[j] = cluster_number
+						uncheck_list.append(j)
+		iteration += 1
+		cluster_number += 1
+	return classification, iteration, cluster_number
 
 def dbscan(data, eps, min_points, dataset):
+	neighbor = calculate_neighbor(data, eps, min_points)
 	classification = np.full((data.shape[0]), -1)
 	cluster_number = 0
-	current_cluster = 0
 	iteration = 0
 	for i in range(0, data.shape[0]):
-		iteration += 1
-		if classification[i] == -1:
-			current_cluster = cluster_number
-		else:
-			current_cluster = classification[i]
-		data_in_eps = 0
-		temp = np.zeros(min_points, dtype=np.int)
-		for j in range(i + 1, data.shape[0]):
-			if np.linalg.norm(data[i] - data[j]) < eps:
-				if data_in_eps < min_points:
-					temp[data_in_eps] = j
-					data_in_eps += 1
-					if data_in_eps == min_points:
-						update(data, eps, i, j, classification, temp, min_points, current_cluster)
-						cluster_number += 1
-						break
-		draw(data, classification, np.unique(classification), iteration, dataset)
+		if neighbor[i] != 0:
+			classification, iteration, cluster_number = update(data, eps, i, classification, neighbor, iteration, cluster_number, dataset)
 	draw(data, classification, np.unique(classification), iteration, dataset)
 
 def draw(data, classification, index, iteration, dataset):
@@ -67,10 +66,11 @@ def draw(data, classification, index, iteration, dataset):
 		plt.savefig("./Screenshots/DBSCAN/moon/" + title + ".png")
 	else:
 		plt.savefig("./Screenshots/DBSCAN/circle/" + title + ".png")
+	#plt.show()
 
 if __name__ == "__main__":
 	eps = 0.1
 	min_points = 10
-	dataset = "moon.txt"
+	dataset = "circle.txt"
 	data = read_input(dataset) # data size: 1500*2
 	classification = dbscan(data, eps, min_points, dataset)
