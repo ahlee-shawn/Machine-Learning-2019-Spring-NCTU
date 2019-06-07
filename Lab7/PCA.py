@@ -11,10 +11,6 @@ def get_feature_vectors(covariance):
     idx = eigen_values.argsort()[::-1]
     return eigen_vectors[:,idx][:,:2]
 
-def calculate_lower_dimension(origin_data, feature_vector):
-    # feature_vector size: 784 * 2
-    return np.matmul(origin_data, feature_vector)
-
 def draw(data, label):
     color = ['red', 'green', 'blue', 'brown', 'purple']
     plt.title('PCA')
@@ -26,5 +22,5 @@ if __name__ == "__main__":
     x, label = read_input() # x size: 5000 * 784, label size: 5000 * 1
     covariance = np.cov(x.transpose())
     feature_vectors = get_feature_vectors(covariance) # feature_vector size: 784 * 2
-    lower_dimension_data = calculate_lower_dimension(x, feature_vectors) # lower_dimension_data size: 5000 * 2
+    lower_dimension_data = np.matmul(x, feature_vectors) # lower_dimension_data size: 5000 * 2
     draw(lower_dimension_data, label)
