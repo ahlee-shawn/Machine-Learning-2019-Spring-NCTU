@@ -1,7 +1,8 @@
 #
-#  tsne.py
+#  s-sne.py
 #
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import pylab
 
@@ -101,7 +102,7 @@ def pca(X=np.array([]), no_dims=50):
 	return np.matmul(X, feature_vectors)
 
 
-def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
+def s_sne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
 	"""
 		Runs t-SNE on the dataset in the NxD array X to reduce its
 		dimensionality to no_dims dimensions. The syntaxis of the function is
@@ -142,7 +143,7 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
 		# Compute pairwise affinities
 		sum_Y = np.sum(np.square(Y), 1)
 		num = -2. * np.dot(Y, Y.T)
-		num = 1. / (1. + np.add(np.add(num, sum_Y).T, sum_Y))
+		num = np.exp(-1. * np.add(np.add(num, sum_Y).T, sum_Y))
 		num[range(n), range(n)] = 0.
 		Q = num / np.sum(num)
 		Q = np.maximum(Q, 1e-12)
@@ -150,15 +151,14 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
 		# Compute gradient
 		PQ = P - Q
 		for i in range(n):
-			dY[i, :] = np.sum(np.tile(PQ[:, i] * num[:, i], (no_dims, 1)).T * (Y[i, :] - Y), 0)
+			dY[i, :] = np.sum(np.tile(PQ[:, i], (no_dims, 1)).T * (Y[i, :] - Y), 0)
 
 		# Perform the update
 		if iter < 20:
 			momentum = initial_momentum
 		else:
 			momentum = final_momentum
-		gains = (gains + 0.2) * ((dY > 0.) != (iY > 0.)) + \
-				(gains * 0.8) * ((dY > 0.) == (iY > 0.))
+		gains = (gains + 0.2) * ((dY > 0.) != (iY > 0.)) + (gains * 0.8) * ((dY > 0.) == (iY > 0.))
 		gains[gains < min_gain] = min_gain
 		iY = momentum * iY - eta * (gains * dY)
 		Y = Y + iY
@@ -174,13 +174,22 @@ def tsne(X=np.array([]), no_dims=2, initial_dims=50, perplexity=30.0):
 			P = P / 4.
 
 	# Return solution
-	return Y
+	return Y, P, Q
 
-
-if __name__ == "__main__":
-	print("Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset.")
-	print("Running example on 2,500 MNIST digits...")
-	X, labels = load_data('mnist_X.csv', 'mnist_label.csv')
-	Y = tsne(X, 2, 50, 20.0)
+def draw(Y, labels, P, Q):
+	pylab.title('Symmetric SNE')
 	pylab.scatter(Y[:, 0], Y[:, 1], 20, labels)
 	pylab.show()
+	plt.title('High Dimensionality Similarity')
+	ax = sns.heatmap(P, linewidth=0.5)
+	plt.show()
+	plt.title('Low Dimensionality Similarity')
+	ax = sns.heatmap(Q, linewidth=0.5)
+	plt.show()
+
+if __name__ == "__main__":
+	print("Run Y = ssne.s_sne(X, no_dims, perplexity) to perform S-SNE on your dataset.")
+	print("Running example on 5,000 MNIST digits...")
+	X, labels = load_data('mnist_X.csv', 'mnist_label.csv')
+	Y, P, Q = s_sne(X, 2, 50, 20.0)
+	draw(Y, labels, P, Q)
