@@ -2,7 +2,6 @@
 #  tsne.py
 #
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 import pylab
 
@@ -181,10 +180,10 @@ def draw(Y, labels, P, Q):
 	pylab.scatter(Y[:, 0], Y[:, 1], 20, labels)
 	pylab.show()
 	plt.title('High Dimensionality Similarity')
-	ax = sns.heatmap(P, linewidth=0.5)
+	plt.imshow(P, cmap='hot', interpolation='nearest')
 	plt.show()
 	plt.title('Low Dimensionality Similarity')
-	ax = sns.heatmap(Q, linewidth=0.5)
+	plt.imshow(Q, cmap='hot', interpolation='nearest')
 	plt.show()
 
 if __name__ == "__main__":
