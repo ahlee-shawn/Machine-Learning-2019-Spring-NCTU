@@ -230,11 +230,8 @@ if __name__ == "__main__":
 		
 		data_mean = (data_mean * (k - 1) + new_data_y[0][0]) / k
 		data_variance = data_variance + (prev_data_mean ** 2) - (data_mean ** 2) + (((new_data_y[0][0] ** 2) - data_variance - (prev_data_mean ** 2)) / (k + 1))
-		if data_variance == 0:
-			a = 0.0001
-		else:
-			a = data_variance
-		
+
+		a = 1 / variance_error
 		A = matrix_A(new_data_x, n)
 		A_transpose = matrix_transpose(A)
 		A_transpose_mul_A = matrix_mul(A_transpose, A)
